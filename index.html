@@ -1,0 +1,2335 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>IASD CENTRAL APP DESCOBRINDO A VERDADE - BIBLIA MAIS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            image-rendering: pixelated;
+        }
+
+        body {
+            font-family: 'VT323', monospace;
+            background-color: #1f0808;
+            color: #ffffff;
+            overflow: hidden;
+            touch-action: manipulation;
+            letter-spacing: 0.5px;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .app-container {
+            max-width: 500px;
+            margin: 0 auto;
+            height: 100vh;
+            height: 100dvh;
+            background-color: #3b0d11;
+            position: relative;
+            box-shadow: 0 0 35px rgba(245, 158, 11, 0.35);
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Texturas Pixel Art inspiradas nas cores do estudo Bíblia+ (Carmesim, Terracota e Ouro) */
+        .bg-dirt {
+            background-color: #7f1d1d;
+            background-image: 
+                radial-gradient(#450a0a 15%, transparent 16%), 
+                radial-gradient(#991b1b 15%, transparent 16%);
+            background-size: 16px 16px;
+            background-position: 0 0, 8px 8px;
+        }
+
+        .bg-stone {
+            background-color: #3f1d24;
+            background-image: 
+                linear-gradient(45deg, #2a1015 25%, transparent 25%, transparent 75%, #2a1015 75%, #2a1015), 
+                linear-gradient(45deg, #2a1015 25%, transparent 25%, transparent 75%, #2a1015 75%, #2a1015);
+            background-size: 16px 16px;
+            background-position: 0 0, 8px 8px;
+        }
+
+        .bg-wood {
+            background-color: #78350f;
+            background-image: repeating-linear-gradient(0deg, #5c280b, #5c280b 4px, #78350f 4px, #78350f 12px);
+        }
+
+        .bg-obsidian {
+            background-color: #270910;
+            background-image: radial-gradient(#7f1d1d 20%, transparent 20%), radial-gradient(#450a0a 20%, transparent 20%);
+            background-size: 12px 12px;
+            background-position: 0 0, 6px 6px;
+        }
+
+        /* Estilo UI Oficial Minecraft 3D Bevel - Edição Quartzo Dourado & Carmesim (Cores Bíblia+) */
+        .mc-panel {
+            background-color: #fef3c7;
+            border-top: 4px solid #ffffff;
+            border-left: 4px solid #ffffff;
+            border-right: 4px solid #b45309;
+            border-bottom: 4px solid #b45309;
+            color: #290b0e;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.45);
+        }
+
+        .mc-slot {
+            background-color: #5c1f27;
+            border-top: 3px solid #2e0d12;
+            border-left: 3px solid #2e0d12;
+            border-right: 3px solid #c0848a;
+            border-bottom: 3px solid #c0848a;
+            position: relative;
+            transition: transform 0.1s;
+        }
+
+        .mc-slot:active {
+            transform: scale(0.95);
+        }
+
+        .mc-slot.completed {
+            background-color: #d97706;
+            border-top-color: #78350f;
+            border-left-color: #78350f;
+            border-right-color: #fde68a;
+            border-bottom-color: #fde68a;
+        }
+
+        .mc-btn {
+            background-color: #881337;
+            border-top: 4px solid #e11d48;
+            border-left: 4px solid #e11d48;
+            border-right: 4px solid #4c0519;
+            border-bottom: 4px solid #4c0519;
+            color: #ffffff;
+            text-shadow: 2px 2px 0px #2b0610;
+            cursor: pointer;
+            transition: filter 0.1s;
+        }
+
+        .mc-btn:hover {
+            filter: brightness(1.15);
+            border-top-color: #fde047;
+            border-left-color: #fde047;
+        }
+
+        .mc-btn:active {
+            border-top: 4px solid #4c0519;
+            border-left: 4px solid #4c0519;
+            border-right: 4px solid #e11d48;
+            border-bottom: 4px solid #e11d48;
+            transform: translateY(2px);
+        }
+
+        .mc-btn-green {
+            background-color: #b45309;
+            border-top: 4px solid #fbbf24;
+            border-left: 4px solid #fbbf24;
+            border-right: 4px solid #78350f;
+            border-bottom: 4px solid #78350f;
+        }
+
+        .mc-btn-gold {
+            background-color: #ca8a04;
+            border-top: 4px solid #fef08a;
+            border-left: 4px solid #fef08a;
+            border-right: 4px solid #713f12;
+            border-bottom: 4px solid #713f12;
+        }
+
+        .mc-text-shadow {
+            text-shadow: 2px 2px 0px #000000;
+        }
+
+        .hidden-screen { display: none !important; }
+
+        /* Animação Screen Shake (Dano) */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-10px) rotate(-1deg); }
+            40% { transform: translateX(10px) rotate(1deg); }
+            60% { transform: translateX(-8px); }
+            80% { transform: translateX(8px); }
+        }
+
+        .shake-anim {
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        .damage-flash {
+            box-shadow: inset 0 0 80px 30px rgba(220, 38, 38, 0.85) !important;
+        }
+
+        /* Portal de Ouro e Redstone (32 Blocos) */
+        .portal-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 3px;
+            background: #1a0608;
+            padding: 6px;
+            border: 3px solid #f59e0b;
+        }
+        .portal-block {
+            aspect-ratio: 1;
+            background: #3f1d24;
+            border: 1px solid #1f0808;
+        }
+        .portal-block.active {
+            background: #f59e0b;
+            box-shadow: 0 0 8px #fde047;
+            border-color: #ffffff;
+            animation: pulsePortal 2s infinite alternate;
+        }
+
+        @keyframes pulsePortal {
+            from { background-color: #dc2626; }
+            to { background-color: #f59e0b; }
+        }
+
+        /* Toast de Conquista */
+        #achievement-toast {
+            transition: top 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container" id="app">
+        
+        <!-- TOAST DE CONQUISTA (TOPO) -->
+        <div id="achievement-toast" class="fixed -top-32 left-1/2 -translate-x-1/2 z-50 w-80 bg-[#3b0a11] border-4 border-[#fbbf24] p-3 flex items-center gap-3 shadow-2xl pointer-events-none">
+            <div class="w-12 h-12 bg-amber-500 border-2 border-white flex items-center justify-center text-2xl shrink-0">
+                🏆
+            </div>
+            <div class="overflow-hidden">
+                <p class="text-amber-300 text-lg leading-none mc-text-shadow">Conquista Desbloqueada!</p>
+                <p id="achievement-title" class="text-white text-xl font-bold truncate leading-tight">Minerador Veloz</p>
+            </div>
+        </div>
+
+        <!-- MODAL DE MODO FOCO (CAVERNA DE MINERAÇÃO) -->
+        <div id="modal-focus" class="hidden-screen fixed inset-0 z-40 bg-[#180507]/95 flex flex-col items-center justify-center p-6 text-center">
+            <div class="text-amber-400 text-2xl mb-2 animate-pulse"><i class="fa-solid fa-fire-flame-curved"></i> MODO FOCO: MINA DE OURO & REDSTONE</div>
+            <p class="text-amber-100 text-2xl mb-4"><span class="player-name-span font-bold text-yellow-300">Explorador</span>, abra sua Bíblia física rapidamente e encontre:</p>
+            
+            <div class="bg-[#2e090d] border-4 border-amber-400 px-6 py-4 mb-6 shadow-[0_0_25px_rgba(245,158,11,0.6)]">
+                <h2 id="focus-verse" class="text-5xl text-yellow-300 font-black mc-text-shadow">João 3:16</h2>
+            </div>
+
+            <div class="text-8xl font-black text-red-400 mc-text-shadow mb-8 font-mono" id="focus-timer">60</div>
+
+            <div class="flex flex-col gap-3 w-full max-w-xs">
+                <button onclick="foundVerseEarly()" class="mc-btn mc-btn-green py-4 text-3xl font-bold">
+                    <i class="fa-solid fa-crown mr-2"></i> JÁ ENCONTREI E LI!
+                </button>
+                <button onclick="closeFocusMode()" class="mc-btn py-2 text-xl">
+                    Voltar ao Guia
+                </button>
+            </div>
+        </div>
+
+        <!-- MODAL DE BACKUP / CÓDIGO DE SAVE (ESPECIAL PARA GOOGLE SITES) -->
+        <div id="modal-backup" class="hidden-screen fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4">
+            <div class="mc-panel p-5 max-w-sm w-full text-left">
+                <div class="flex justify-between items-center border-b-2 border-amber-700 pb-2 mb-3">
+                    <h3 class="text-2xl font-bold text-[#450a0a]">💾 Código de Save (Backup)</h3>
+                    <button onclick="closeBackupModal()" class="mc-btn px-2.5 py-0.5 text-lg">X</button>
+                </div>
+                <p class="text-lg text-stone-800 leading-tight mb-2">
+                    Use este código para guardar seu progresso com segurança ou restaurar caso o navegador limpe os dados:
+                </p>
+                <textarea id="backup-code-text" rows="3" class="w-full bg-[#1f0507] text-amber-300 font-mono text-sm p-2 border-2 border-amber-600 mb-2 select-all"></textarea>
+                <div id="backup-msg" class="text-center text-lg font-bold text-green-800 mb-2 hidden">✅ Código copiado!</div>
+                <div class="flex gap-2 mb-3">
+                    <button onclick="copyBackupCode()" class="mc-btn mc-btn-gold flex-1 py-2 text-xl font-bold">
+                        <i class="fa-solid fa-copy"></i> Copiar Save
+                    </button>
+                    <button onclick="loadBackupCode()" class="mc-btn mc-btn-green flex-1 py-2 text-xl font-bold">
+                        <i class="fa-solid fa-upload"></i> Colar Save
+                    </button>
+                </div>
+                <div class="flex gap-2 mb-3">
+                    <button onclick="downloadSaveFile()" class="mc-btn bg-blue-700 flex-1 py-2 text-xl font-bold border-t-4 border-l-4 border-blue-400 border-r-4 border-b-4 border-blue-900 text-white mc-text-shadow">
+                        <i class="fa-solid fa-download"></i> Baixar Arquivo
+                    </button>
+                    <label class="mc-btn bg-purple-700 flex-1 py-2 text-xl font-bold text-center cursor-pointer border-t-4 border-l-4 border-purple-400 border-r-4 border-b-4 border-purple-900 text-white mc-text-shadow">
+                        <i class="fa-solid fa-folder-open"></i> Abrir Arquivo
+                        <input type="file" id="file-upload" class="hidden" accept=".txt" onchange="uploadSaveFile(event)">
+                    </label>
+                </div>
+                <button onclick="closeBackupModal()" class="mc-btn w-full py-2 text-xl">Fechar</button>
+            </div>
+        </div>
+
+        <!-- MODAL DE CONFIRMAÇÃO DE RESET -->
+        <div id="modal-reset" class="hidden-screen fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+            <div class="mc-panel p-6 max-w-sm w-full text-center">
+                <h3 class="text-3xl font-bold text-red-700 mb-2">Deletar Mundo Bíblia+?</h3>
+                <p class="text-xl mb-6">Todo o XP, itens, armaduras e os 32 blocos completados por <span class="player-name-span font-bold">você</span> voltarão ao zero para recomeçar o estudo!</p>
+                <div class="flex gap-3">
+                    <button onclick="closeResetModal()" class="mc-btn flex-1 py-3 text-2xl">Cancelar</button>
+                    <button onclick="confirmResetWorld()" class="mc-btn bg-red-600 border-red-400 flex-1 py-3 text-2xl">Zerar Tudo</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TELA 1: INÍCIO -->
+        <div id="screen-home" class="flex flex-col items-center justify-between h-full p-5 text-center bg-dirt overflow-y-auto">
+            <div class="mt-2">
+                <span class="bg-black/80 text-amber-300 px-3 py-1 text-lg border-2 border-amber-400 tracking-wide">IASD CENTRAL • ESTUDO BÍBLICO INTERATIVO</span>
+            </div>
+
+            <div class="flex flex-col items-center my-auto py-2 w-full">
+                <!-- Logo Bloco Bíblia+ (Carmesim e Ouro com o "+") -->
+                <div class="w-24 h-24 bg-[#b91c1c] border-t-8 border-l-8 border-[#fbbf24] border-r-8 border-b-8 border-[#450a0a] flex items-center justify-center mb-3 relative shadow-2xl">
+                    <div class="text-5xl font-black text-amber-300 mc-text-shadow">B+</div>
+                </div>
+                
+                <h1 class="text-3xl sm:text-4xl font-black mb-1 mc-text-shadow text-amber-300 tracking-wide leading-tight px-2">
+                    IASD CENTRAL<br>
+                    <span class="text-white text-2xl sm:text-3xl">APP DESCOBRINDO A VERDADE</span><br>
+                    <span class="text-yellow-300 text-4xl sm:text-5xl">BÍBLIA MAIS</span>
+                </h1>
+                <p class="text-amber-200 text-xl mt-1 mc-text-shadow bg-black/70 px-3 py-0.5 border border-amber-500">Estudo Ilustrado + 5 Anexos (32 Blocos)</p>
+
+                <!-- Caixa para digitar o nome do Aluno/Explorador -->
+                <div class="mc-panel p-3.5 mt-4 w-full max-w-sm text-left">
+                    <label for="player-name-input" class="block text-xl font-bold text-[#450a0a] mb-1">
+                        <i class="fa-solid fa-user-astronaut"></i> Qual é o seu nome, Explorador(a)?
+                    </label>
+                    <input 
+                        type="text" 
+                        id="player-name-input" 
+                        placeholder="Digite seu nome aqui..." 
+                        maxlength="22"
+                        class="w-full bg-[#29080c] text-amber-300 border-4 border-amber-600 px-3 py-2 text-2xl font-bold focus:outline-none focus:border-yellow-300 placeholder-amber-700/70"
+                    />
+                    <p id="name-error-msg" class="text-red-700 text-lg font-bold mt-1 hidden">⚠️ Por favor, digite seu nome antes de começar!</p>
+                </div>
+            </div>
+            
+            <div class="w-full flex flex-col gap-2 mb-1">
+                <button onclick="startGame()" class="mc-btn mc-btn-green w-full py-3.5 text-3xl font-black">
+                    <i class="fa-solid fa-book-bible mr-2"></i> COMEÇAR JORNADA
+                </button>
+                <div class="text-sm text-amber-200 mc-text-shadow">Progresso salvo automaticamente no dispositivo</div>
+            </div>
+        </div>
+
+        <!-- TELA 2: INVENTÁRIO E MAPA DOS 32 BLOCOS (27 ESTUDOS + 5 ANEXOS) -->
+        <div id="screen-map" class="hidden-screen flex flex-col h-full bg-stone">
+            <!-- Header do Jogador -->
+            <div class="bg-[#24070b] p-3 border-b-4 border-amber-700 sticky top-0 z-20 shadow-lg">
+                <div class="flex justify-between items-center mb-2">
+                    <!-- Avatar + Armadura -->
+                    <div class="flex items-center gap-2 bg-[#450a0a] p-1.5 border-2 border-amber-500">
+                        <div id="player-avatar-box" class="w-12 h-12 bg-[#f59e0b] border-2 border-black relative flex items-center justify-center text-2xl">
+                            👦🏻
+                            <span id="armor-badge" class="absolute -bottom-1 -right-1 text-base"></span>
+                        </div>
+                        <div class="leading-none pr-1">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-xl text-white font-bold mc-text-shadow player-name-span">Explorador</span>
+                                <button onclick="changePlayerNamePrompt()" class="text-xs bg-amber-700 hover:bg-amber-600 text-white px-1.5 py-0.5 border border-amber-300" title="Trocar Nome">✏️</button>
+                            </div>
+                            <div class="text-sm text-amber-300" id="player-rank">Explorador Bíblia+</div>
+                        </div>
+                    </div>
+
+                    <!-- XP e Botões Rápidos -->
+                    <div class="flex items-center gap-2">
+                        <div class="bg-black border-2 border-amber-400 px-3 py-1 text-right">
+                            <div class="text-xs text-amber-300 uppercase leading-none">Ouro XP</div>
+                            <div class="text-2xl text-yellow-300 font-bold leading-none" id="xp-display">0</div>
+                        </div>
+                        <button onclick="openShop()" class="mc-btn mc-btn-gold px-3 py-2 text-xl" title="Vila do Aldeão">
+                            🧔🏽‍♂️ Vila
+                        </button>
+                        <button onclick="openAchievements()" class="mc-btn px-3 py-2 text-xl" title="Conquistas e Baú">
+                            🏆
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Progresso do Grande Portal (32 Blocos) -->
+                <div class="bg-black/80 p-2 border-2 border-amber-600">
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="text-amber-300"><i class="fa-solid fa-fire"></i> Portal Dourado Bíblia+:</span>
+                        <span id="portal-count" class="text-yellow-300 font-bold">0 / 32 Blocos</span>
+                    </div>
+                    <div id="portal-grid" class="portal-grid">
+                        <!-- 32 mini blocos gerados via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtro de Mundos (Temporadas + Anexos) -->
+            <div class="bg-[#3b0d11] px-2 py-1.5 flex gap-1 overflow-x-auto border-b-4 border-[#1f0608] shrink-0 text-base">
+                <button onclick="filterWorld('all')" id="tab-all" class="mc-btn px-2.5 py-1 text-lg bg-amber-600">Todos (32)</button>
+                <button onclick="filterWorld(1)" id="tab-1" class="mc-btn px-2 py-1 text-base">M1: Origem</button>
+                <button onclick="filterWorld(2)" id="tab-2" class="mc-btn px-2 py-1 text-base">M2: Resgate</button>
+                <button onclick="filterWorld(3)" id="tab-3" class="mc-btn px-2 py-1 text-base">M3: Futuro</button>
+                <button onclick="filterWorld(4)" id="tab-4" class="mc-btn px-2 py-1 text-base">M4: Leis</button>
+                <button onclick="filterWorld(5)" id="tab-5" class="mc-btn px-2 py-1 text-base">M5: Missão</button>
+                <button onclick="filterWorld(6)" id="tab-6" class="mc-btn px-2 py-1 text-base text-yellow-200">⭐ Anexos (5)</button>
+            </div>
+
+            <!-- Grid estilo Inventário Minecraft -->
+            <div class="flex-1 overflow-y-auto p-3">
+                <div class="mc-panel p-3">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xl font-bold text-[#450a0a]">INVENTÁRIO BÍBLIA+ (Clique no bloco):</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2.5" id="grid-blocos">
+                        <!-- 32 Slots injetados via JS -->
+                    </div>
+                </div>
+
+                <!-- Rodapé de Administração (Pai) -->
+                <div class="mt-6 mb-4 flex flex-wrap justify-between items-center gap-2 bg-black/75 p-3 border-2 border-amber-700">
+                    <span id="save-status-indicator" class="text-base text-amber-200 font-bold">
+                        <i class="fa-solid fa-floppy-disk text-amber-400"></i> Salvo Blindado Ativo
+                    </span>
+                    <div class="flex gap-2">
+                        <button onclick="openBackupModal()" class="mc-btn mc-btn-gold px-3 py-1 text-base">
+                            <i class="fa-solid fa-key"></i> Código Save
+                        </button>
+                        <button onclick="openResetModal()" class="mc-btn bg-red-900 px-3 py-1 text-base">
+                            <i class="fa-solid fa-trash-can"></i> Zerar Mundo
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TELA 3: VILA DO ALDEÃO (LOJA DE XP) -->
+        <div id="screen-shop" class="hidden-screen flex flex-col h-full bg-wood">
+            <div class="bg-[#2e090d] p-3 flex justify-between items-center border-b-4 border-black">
+                <button onclick="showScreen('screen-map')" class="mc-btn px-3 py-1 text-2xl">
+                    <i class="fa-solid fa-arrow-left"></i> Voltar
+                </button>
+                <h2 class="text-3xl text-amber-300 mc-text-shadow">🧔🏽‍♂️ Mercador Real Bíblia+</h2>
+                <div class="bg-black px-3 py-1 border-2 border-amber-400 text-amber-300 text-2xl font-bold" id="shop-xp">0 XP</div>
+            </div>
+
+            <div class="p-4 flex-1 overflow-y-auto flex flex-col gap-3">
+                <div class="mc-panel p-3 flex items-center gap-3 bg-amber-100">
+                    <div class="text-5xl cursor-pointer" onclick="playVillagerSound()">🧔🏽‍♂️</div>
+                    <div>
+                        <p class="text-xl font-bold text-red-950">"Hrmmm! Bem-vindo ao Bíblia+, <span class="player-name-span">Explorador</span>!"</p>
+                        <p class="text-lg leading-tight text-stone-800">Troque seu Ouro de XP por armaduras reais, itens encantados e vantagens contra os Bosses!</p>
+                    </div>
+                </div>
+
+                <!-- Lista de Itens da Loja -->
+                <div id="shop-items-container" class="flex flex-col gap-2.5">
+                    <!-- Gerado via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- TELA 4: SALA DE TROFÉUS E BAÚ DE LOOT -->
+        <div id="screen-achievements" class="hidden-screen flex flex-col h-full bg-obsidian">
+            <div class="bg-[#24070b] p-3 flex justify-between items-center border-b-4 border-black">
+                <button onclick="showScreen('screen-map')" class="mc-btn px-3 py-1 text-2xl">
+                    <i class="fa-solid fa-arrow-left"></i> Voltar
+                </button>
+                <h2 class="text-3xl text-amber-300 mc-text-shadow">🏆 Baú & Conquistas</h2>
+                <div class="w-12"></div>
+            </div>
+
+            <div class="p-4 flex-1 overflow-y-auto flex flex-col gap-4">
+                <!-- Baú de Minérios Coletados -->
+                <div class="mc-panel p-3">
+                    <h3 class="text-2xl font-bold mb-2 border-b-2 border-amber-700 pb-1">📦 Baú de Relíquias Bíblia+ (<span id="loot-count">0</span>/32)</h3>
+                    <div id="loot-grid" class="grid grid-cols-6 gap-1.5">
+                        <!-- 32 itens do baú -->
+                    </div>
+                </div>
+
+                <!-- Lista de Conquistas -->
+                <div class="mc-panel p-3">
+                    <h3 class="text-2xl font-bold mb-2 border-b-2 border-amber-700 pb-1">🎖️ Medalhas Especiais</h3>
+                    <div id="achievements-list" class="flex flex-col gap-2">
+                        <!-- Gerado via JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TELA 5: PAINEL DO ESTUDO (4 PASSOS INTERATIVOS) -->
+        <div id="screen-lesson" class="hidden-screen flex flex-col h-full bg-[#fffbeb] overflow-y-auto text-black">
+            <!-- Topo Fixo -->
+            <div class="bg-[#450a0a] p-3 flex justify-between items-center border-b-4 border-amber-600 text-white sticky top-0 z-20">
+                <button onclick="showScreen('screen-map')" class="mc-btn px-3 py-1 text-2xl">
+                    <i class="fa-solid fa-arrow-left"></i> Mapa
+                </button>
+                <div class="text-center flex-1 px-2 truncate">
+                    <span id="lesson-world-badge" class="text-xs bg-amber-600 text-black font-bold px-2 py-0.5 uppercase block leading-none">Mundo 1</span>
+                    <h2 id="lesson-title" class="text-2xl mc-text-shadow text-amber-300 truncate leading-tight">Bloco 1: A Bíblia</h2>
+                </div>
+                <button onclick="playVillagerSound()" class="mc-btn px-2.5 py-1 text-xl" title="Som de Aldeão">🔊</button>
+            </div>
+
+            <div class="p-3.5 flex flex-col gap-4 pb-16">
+                
+                <!-- PASSO 1: O GANCHO -->
+                <div class="mc-panel p-3.5 relative">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="bg-red-800 text-amber-200 px-2 py-0.5 border-2 border-black text-xl font-bold">
+                            PASSO 1: O GANCHO (Curiosidade)
+                        </span>
+                        <span class="text-sm text-red-900 font-bold">Instrutor + <span class="player-name-span">Explorador</span></span>
+                    </div>
+                    <p id="lesson-hook" class="text-2xl leading-snug text-gray-900 mt-2">...</p>
+                </div>
+
+                <!-- PASSO 2: MINERAÇÃO NA BÍBLIA + SENHA DO VERSÍCULO -->
+                <div class="mc-panel p-3.5 bg-[#fde68a]">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="bg-amber-700 text-white px-2 py-0.5 border-2 border-black text-xl font-bold">
+                            PASSO 2: MINERAÇÃO NA BÍBLIA
+                        </span>
+                        <span id="step2-status" class="text-base bg-red-700 text-white px-2 py-0.5">Pendente</span>
+                    </div>
+                    
+                    <p class="text-xl leading-tight mb-2">1º) Procure este texto na sua Bíblia de papel:</p>
+                    
+                    <div class="bg-[#29080c] text-amber-300 p-2.5 text-center text-3xl mb-3 border-4 border-amber-500 font-bold flex justify-between items-center">
+                        <span id="lesson-verse" class="mx-auto">João 3:16</span>
+                    </div>
+                    
+                    <button onclick="openFocusMode()" id="btn-timer" class="mc-btn mc-btn-gold w-full py-2.5 text-2xl font-bold mb-4">
+                        <i class="fa-solid fa-stopwatch"></i> ABRIR CRONÔMETRO DE FOCO (<span id="timer-btn-secs">60</span>s)
+                    </button>
+
+                    <!-- Desbloqueio por Senha da Leitura -->
+                    <div class="bg-[#3b0a11] text-white p-3 border-2 border-amber-500">
+                        <p class="text-amber-300 text-xl mb-1"><i class="fa-solid fa-key"></i> Cofre da Leitura Ativa:</p>
+                        <p id="verse-pwd-prompt" class="text-xl mb-2 leading-tight">De acordo com o texto lido, qual palavra completa a ideia?</p>
+                        <div id="verse-pwd-options" class="grid grid-cols-3 gap-2">
+                            <!-- 3 botões de palavra-senha -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PASSO 3: MESA DE TRABALHO (CRAFTING DO CONCEITO) -->
+                <div class="mc-panel p-3.5">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="bg-red-900 text-amber-200 px-2 py-0.5 border-2 border-black text-xl font-bold">
+                            PASSO 3: INFOGRÁFICO BÍBLIA+ (A, B, C)
+                        </span>
+                        <span id="step3-status" class="text-base bg-red-700 text-white px-2 py-0.5">Pendente</span>
+                    </div>
+
+                    <!-- As 3 Páginas Ilustradas A, B e C do Bíblia+ -->
+                    <div class="bg-white/95 border-2 border-amber-700 p-2.5 mb-3">
+                        <p class="text-lg font-bold text-red-900 mb-1">📊 Os 3 Painéis do Estudo Bíblia+:</p>
+                        <ul id="lesson-tips" class="list-disc pl-5 text-xl space-y-1 text-gray-900 leading-tight">
+                            <!-- 3 frases curtas injetadas -->
+                        </ul>
+                    </div>
+
+                    <!-- Mini-Game Crafting Table -->
+                    <div class="bg-[#450a0a] border-4 border-[#1f0505] p-3 text-white">
+                        <p class="text-xl text-amber-300 mc-text-shadow mb-2 text-center">
+                            ⚒️ FORJA REAL BÍBLIA+: Clique nos 2 blocos para construir a verdade!
+                        </p>
+                        <div class="flex items-center justify-center gap-2 my-2">
+                            <button id="craft-slot-1" onclick="clickCraftIngredient(1)" class="mc-slot w-28 h-20 flex flex-col items-center justify-center p-1 text-center bg-[#6b1d27]">
+                                <span class="text-xs text-amber-200">Bloco 1</span>
+                                <span id="craft-text-1" class="text-lg font-bold text-white leading-none mt-1">...</span>
+                            </button>
+                            <span class="text-3xl font-bold text-amber-400">+</span>
+                            <button id="craft-slot-2" onclick="clickCraftIngredient(2)" class="mc-slot w-28 h-20 flex flex-col items-center justify-center p-1 text-center bg-[#6b1d27]">
+                                <span class="text-xs text-amber-200">Bloco 2</span>
+                                <span id="craft-text-2" class="text-lg font-bold text-white leading-none mt-1">...</span>
+                            </button>
+                            <span class="text-3xl font-bold text-amber-400">=</span>
+                            <div id="craft-result-slot" class="mc-slot w-28 h-20 flex flex-col items-center justify-center p-1 text-center bg-black border-amber-400">
+                                <span id="craft-result-icon" class="text-2xl">❓</span>
+                                <span id="craft-result-text" class="text-base font-bold text-amber-300 leading-none mt-1">Bloqueado</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PASSO 4: BOTÃO DO BOSS -->
+                <div class="mt-1">
+                    <button id="btn-start-boss" onclick="startQuiz()" class="mc-btn mc-btn-green w-full py-4 text-3xl font-black shadow-xl">
+                        ⚔️ ENFRENTAR O BOSS (3 PERGUNTAS)
+                    </button>
+                    <p class="text-center text-lg text-stone-700 mt-1">Dica: Complete o Cofre e a Forja acima para ganhar +50 XP bônus!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TELA 6: ARENA DE BATALHA CONTRA O BOSS (QUIZ DE 3 PERGUNTAS) -->
+        <div id="screen-quiz" class="hidden-screen flex flex-col h-full bg-[#1f060a] justify-between p-4">
+            
+            <!-- Status da Batalha: Corações do Jogador vs Vida do Boss -->
+            <div>
+                <div class="flex justify-between items-center bg-black/90 p-2.5 border-2 border-amber-600 mb-3">
+                    <div>
+                        <span class="text-sm text-amber-300 block leading-none uppercase">VIDA DE <span class="player-name-span">EXPLORADOR</span>:</span>
+                        <div id="player-hearts" class="text-2xl tracking-widest mt-0.5">❤️❤️❤️</div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-sm text-red-300 block leading-none">ATAQUE:</span>
+                        <span id="quiz-progress-text" class="text-2xl text-white font-bold">Golpe 1 de 3</span>
+                    </div>
+                </div>
+
+                <!-- Card do Monstro (Boss) -->
+                <div id="boss-container" class="mc-panel bg-[#450a0a] text-white p-3 text-center relative transition-transform">
+                    <div class="flex items-center justify-center gap-3 mb-2">
+                        <span id="boss-emoji" class="text-5xl">🧟</span>
+                        <div class="text-left flex-1">
+                            <div class="flex justify-between items-end">
+                                <h4 id="boss-name" class="text-2xl font-bold text-amber-300 mc-text-shadow">Guardião da Dúvida</h4>
+                                <span id="boss-hp-text" class="text-lg text-red-200">HP: 100%</span>
+                            </div>
+                            <!-- Barra de Vida Estilo Boss do Minecraft -->
+                            <div class="w-full h-5 bg-gray-900 border-2 border-amber-300 mt-1 overflow-hidden">
+                                <div id="boss-hp-bar" class="h-full bg-gradient-to-r from-red-600 to-amber-500 transition-all duration-300" style="width: 100%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pergunta Atual -->
+            <div class="my-auto py-2">
+                <div class="mc-panel bg-amber-50 p-4 mb-4 border-4 border-amber-400">
+                    <h3 id="quiz-question" class="text-2xl md:text-3xl text-stone-950 font-bold text-center leading-tight">Pergunta?</h3>
+                </div>
+
+                <!-- Opções de Resposta -->
+                <div id="quiz-options" class="flex flex-col gap-3">
+                    <!-- Botões gerados via JS -->
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button onclick="showScreen('screen-lesson')" class="text-amber-300 underline text-lg">Recuar para o Estudo</button>
+            </div>
+        </div>
+
+        <!-- TELA 7: GAME OVER (VOCÊ NÃO SOBREVIVEU) -->
+        <div id="screen-gameover" class="hidden-screen flex flex-col items-center justify-center h-full bg-red-950/95 p-6 text-center">
+            <h2 class="text-6xl font-black text-red-500 mc-text-shadow mb-2">VOCÊ PERDEU OS CORAÇÕES!</h2>
+            <p class="text-2xl text-gray-200 mb-6">Não desista, Agente <span class="player-name-span font-bold text-amber-300">Explorador</span>! Revise os 3 painéis com seu instrutor e tente novamente.</p>
+            
+            <div class="text-6xl mb-8">💔</div>
+
+            <div class="flex flex-col gap-3 w-full max-w-xs">
+                <button onclick="startQuiz()" class="mc-btn mc-btn-gold py-4 text-3xl font-bold">
+                    🔄 RESPAWNAR (Tentar de Novo)
+                </button>
+                <button onclick="showScreen('screen-lesson')" class="mc-btn py-3 text-2xl">
+                    📖 Voltar para ler a Dica
+                </button>
+            </div>
+        </div>
+
+        <!-- TELA 8: VITÓRIA E LOOT + COMPROMISSO -->
+        <div id="screen-success" class="hidden-screen flex flex-col items-center justify-between h-full bg-dirt p-5 text-center overflow-y-auto">
+            <div class="mt-2">
+                <h2 class="text-5xl font-black text-amber-300 mc-text-shadow leading-none">VITÓRIA REAL BÍBLIA+!</h2>
+                <p class="text-2xl text-yellow-100 mc-text-shadow">Parabéns, <span class="player-name-span font-bold text-amber-300">Explorador</span>! Bloco Dourado ativado!</p>
+            </div>
+
+            <!-- Baú de Recompensa (Loot) -->
+            <div class="mc-panel p-4 w-full my-3 flex flex-col items-center bg-amber-100">
+                <span class="text-lg font-bold text-red-900 uppercase">🎁 Nova Relíquia Minerada pro Baú:</span>
+                <div id="reward-loot-icon" class="text-6xl my-2 drop-shadow">💎</div>
+                <div id="reward-loot-name" class="text-3xl font-black text-red-950">Diamante da Fé</div>
+                <div id="reward-xp-text" class="bg-red-800 text-amber-200 px-4 py-1 text-2xl font-bold mt-2 border-2 border-black">+150 XP</div>
+            </div>
+
+            <!-- Compromisso de Fé do PDF -->
+            <div class="mc-panel p-3.5 w-full text-left bg-white mb-3">
+                <p class="text-xl font-bold text-red-900 mb-1"><i class="fa-solid fa-shield-heart"></i> Compromisso de Fé de <span class="player-name-span">Explorador</span>:</p>
+                <label class="flex items-center gap-3 cursor-pointer p-1">
+                    <input type="checkbox" id="faith-check" checked class="w-6 h-6 accent-red-700">
+                    <span id="lesson-commitment" class="text-xl leading-tight text-gray-900 font-bold">Eu aceito a Bíblia como o manual de Deus para minha vida!</span>
+                </label>
+            </div>
+            
+            <div class="w-full flex gap-3 mb-2">
+                <button onclick="showScreen('screen-map')" class="mc-btn mc-btn-green flex-1 py-3.5 text-3xl font-black">
+                    SALVAR E IR AO MAPA
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // =========================================================================
+        // 1. BANCO DE DADOS COMPLETO DA SÉRIE "BÍBLIA+" (27 ESTUDOS + 5 ANEXOS = 32 BLOCOS)
+        // =========================================================================
+        const missions = [
+            {
+                id: 1, world: 1, title: "A Bíblia Sagrada",
+                lootIcon: "📘", lootName: "Rolo do Mar Morto",
+                bossName: "Creeper da Dúvida", bossEmoji: "👾",
+                hook: "Rafael, no Estudo 1 do Bíblia+ descobrimos que encontraram rolos antigos em cavernas (Manuscritos do Mar Morto) provando que a Bíblia nunca foi alterada!",
+                verse: "2 Timóteo 3:16",
+                pwdPrompt: "Segundo 2 Timóteo 3:16, toda a Escritura é inspirada por quem?",
+                pwdOptions: ["Pelos Reis", "Por Deus", "Pelos Anjos"], pwdCorrect: 1,
+                tips: [
+                    "a) Como chegou até nós: 66 livros (39 no AT em hebraico e 27 no NT em grego), escritos por 40 autores em 1.600 anos!",
+                    "b) Como entender: Orar pedindo o Espírito Santo, ler o contexto e comparar texto com texto (Isaías 28:10).",
+                    "c) Por que confiar: Os Manuscritos do Mar Morto, sua unidade perfeita e as profecias cumpridas provam que ela é a Verdade!"
+                ],
+                craft1: "39 Livros AT + 27 NT", craft2: "Inspiração Divina", craftResult: "66 Livros da Bíblia",
+                commitment: "Aceito a Bíblia Sagrada como a Palavra infalível de Deus e quero estudá-la todos os dias!",
+                questions: [
+                    { q: "Como se dividem os 66 livros da Bíblia segundo o infográfico da página 3?", opts: ["39 no Antigo Testamento e 27 no Novo Testamento", "50 no Antigo e 16 no Novo", "30 em cada parte"], c: 0 },
+                    { q: "O que os famosos Manuscritos do Mar Morto encontrados nas cavernas provaram?", opts: ["Que o texto da Bíblia que temos hoje é fiel e não foi alterado", "Que a Bíblia era um livro novo", "Apenas histórias romanas"], c: 0 },
+                    { q: "Qual é o segredo número 1 para entender a Bíblia quando lemos?", opts: ["Orar pedindo a orientação do Espírito Santo e comparar texto com texto", "Ler correndo sem pensar", "Ler apenas uma página isolada"], c: 0 }
+                ]
+            },
+            {
+                id: 2, world: 1, title: "A Criação Divina",
+                lootIcon: "🌍", lootName: "Bloco de Grama",
+                bossName: "Enderman do Acaso", bossEmoji: "🕷️",
+                hook: "No Minecraft você leva horas construindo uma casa bloco por bloco. Mas sabe como Deus criou planetas, estrelas e animais? Apenas falando!",
+                verse: "Hebreus 11:3",
+                pwdPrompt: "Em Hebreus 11:3, o universo foi formado por qual poder?",
+                pwdOptions: ["Pela Palavra de Deus", "Por uma explosão", "Por máquinas"], pwdCorrect: 0,
+                tips: [
+                    "Antes a Terra era sem forma e vazia, mas Deus criou tudo em 6 dias literais e descansou no 7º.",
+                    "Pai, Filho (Jesus) e Espírito Santo trabalharam juntos na Criação!",
+                    "Diferente dos animais, Deus moldou Adão do pó com Suas próprias mãos e soprou vida!"
+                ],
+                craft1: "Palavra de Deus", craft2: "6 Dias Reais", craftResult: "Mundo Perfeito",
+                commitment: "Creio que Deus criou o Universo e que sou muito especial para Ele!",
+                questions: [
+                    { q: "Em quantos dias Deus criou os céus, a Terra e os animais?", opts: ["Em 6 dias literais", "Em milhões de anos", "Em 1 hora"], c: 0 },
+                    { q: "Como Deus criou o primeiro homem (Adão) de forma super especial?", opts: ["Moldou do pó da terra e soprou o fôlego de vida", "Apenas jogou uma semente", "Veio dos macacos"], c: 0 },
+                    { q: "Que presente incrível Adão e Eva ganharam para morar?", opts: ["O Jardim do Éden", "Um castelo de pedra", "Uma nave"], c: 0 }
+                ]
+            },
+            {
+                id: 3, world: 1, title: "A Origem do Mal",
+                lootIcon: "🛡️", lootName: "Escudo da Fé",
+                bossName: "Dragão Rebelde", bossEmoji: "🐉",
+                hook: "Se Deus criou um mundo 100% perfeito e sem bugs, de onde saíram os monstros, as doenças e a maldade? Quem foi o primeiro 'Griefer' do universo?",
+                verse: "Apocalipse 12:7-9",
+                pwdPrompt: "Onde aconteceu a grande batalha contra o Dragão em Apocalipse 12:7?",
+                pwdOptions: ["No Céu", "No Deserto", "No Fundo do Mar"], pwdCorrect: 0,
+                tips: [
+                    "Deus não criou o mal! Lúcifer era um anjo perfeito, mas ficou orgulhoso e quis o trono de Deus.",
+                    "Expulso do Céu, ele usou a serpente no Éden para enganar Eva e Adão a desobedecerem.",
+                    "Vencemos o inimigo hoje usando a Armadura de Deus: Fé, Oração e a Bíblia (Efésios 6)!"
+                ],
+                craft1: "Armadura de Deus", craft2: "Oração e Fé", craftResult: "Vitória contra o Mal",
+                commitment: "No conflito entre o bem e o mal, escolho ficar sempre no time de Jesus!",
+                questions: [
+                    { q: "Como o mal começou no universo?", opts: ["Com Lúcifer, um anjo perfeito que teve inveja de Deus", "Deus criou um anjo já estragado", "Começou com os dinossauros"], c: 0 },
+                    { q: "Qual mentira a serpente contou para Eva no Jardim do Éden?", opts: ["Disse que eles não morreriam e seriam como Deus", "Disse que a fruta era azeda", "Disse que ia chover"], c: 0 },
+                    { q: "Em Gênesis 3:15, quem Deus prometeu enviar para derrotar a serpente?", opts: ["Jesus Cristo", "Um exército de cavalos", "O profeta Jonas"], c: 0 }
+                ]
+            },
+            {
+                id: 4, world: 2, title: "O Plano da Salvação",
+                lootIcon: "❤️", lootName: "Maçã Dourada da Vida",
+                bossName: "Esqueleto da Culpa", bossEmoji: "💀",
+                hook: "Quando Adão pecou, o coração humano ficou 'infectado' e não conseguia se salvar sozinho. Mas Deus já tinha uma Missão de Resgate pronta!",
+                verse: "João 3:16",
+                pwdPrompt: "Em João 3:16, o que Deus deu porque amou o mundo?",
+                pwdOptions: ["Seu Filho Unigênito", "Muitas moedas de ouro", "Um mapa novo"], pwdCorrect: 0,
+                tips: [
+                    "Quando o homem pecou, Deus não o abandonou: Ele foi procurar Adão (Gênesis 3:9)!",
+                    "Na cruz, Jesus levou a culpa de todos os nossos erros no lugar da gente.",
+                    "A salvação é um presente grátis pela fé, e o Espírito Santo transforma o nosso coração!"
+                ],
+                craft1: "Sacrifício de Jesus", craft2: "Nossa Fé Nele", craftResult: "Vida Eterna",
+                commitment: "Entrego meu coração a Jesus e O aceito como meu Herói e Salvador!",
+                questions: [
+                    { q: "Qual foi a atitude de Deus logo depois que Adão e Eva pecaram?", opts: ["Deus foi procurar o homem com amor", "Deus desistiu deles na hora", "Deus fechou o céu para sempre"], c: 0 },
+                    { q: "Nós conseguimos comprar a salvação apenas fazendo boas obras sozinhos?", opts: ["Não! É um presente gratuito mediante a fé em Jesus", "Sim, quem tem dinheiro compra", "Sim, basta ser forte"], c: 0 },
+                    { q: "Quem tem o poder de limpar e mudar a nossa natureza para fazermos o bem?", opts: ["O Espírito Santo", "Nossa própria força", "Nenhum poder"], c: 0 }
+                ]
+            },
+            {
+                id: 5, world: 2, title: "Fé e Confissão",
+                lootIcon: "🧪", lootName: "Poção da Pureza",
+                bossName: "Slime do Erro", bossEmoji: "🟢",
+                hook: "Quando o seu inventário está lotado de blocos inúteis, você precisa jogar fora para pegar diamantes. Como limpamos a culpa do nosso coração?",
+                verse: "1 João 1:9",
+                pwdPrompt: "Em 1 João 1:9, se confessarmos os pecados, Deus é fiel para fazer o quê?",
+                pwdOptions: ["Perdoar e purificar", "Brigar conosco", "Anotar num quadro"], pwdCorrect: 0,
+                tips: [
+                    "Fé é confiar 100% em Deus, e nossa fé cresce ouvindo a Bíblia (Romanos 10:17).",
+                    "Arrepender-se é ficar triste pelo erro e decidir não fazer mais aquilo.",
+                    "Quando confessamos nossos pecados a Jesus, Ele os joga no fundo do mar e nos dá paz!"
+                ],
+                craft1: "Arrependimento", craft2: "Confissão a Deus", craftResult: "Coração Perdoado",
+                commitment: "Sempre que eu errar, vou conversar com Deus, pedir perdão e mudar!",
+                questions: [
+                    { q: "Como a gente faz para nossa fé ficar cada vez mais forte (Romanos 10:17)?", opts: ["Ouvindo e estudando a Palavra de Deus", "Guardando a Bíblia na gaveta", "Apenas esperando"], c: 0 },
+                    { q: "Para quem devemos confessar nossos pecados para receber o perdão?", opts: ["Diretamente a Deus, em nome de Jesus", "Para qualquer colega", "Não precisa confessar"], c: 0 },
+                    { q: "O que Deus faz com nossos pecados quando nos arrependemos de verdade?", opts: ["Perdoa tudo e lança nas profundezas do mar", "Guarda para lembrar depois", "Conta para todo mundo"], c: 0 }
+                ]
+            },
+            {
+                id: 6, world: 3, title: "Sinais da Volta",
+                lootIcon: "🧭", lootName: "Bússola do Tempo",
+                bossName: "Fantasma do Engano", bossEmoji: "👻",
+                hook: "Jesus prometeu que vai voltar! Antes de um evento épico no jogo, aparecem avisos na tela. Quais são os sinais de que Jesus está chegando?",
+                verse: "Mateus 24:14",
+                pwdPrompt: "Em Mateus 24:14, o que será pregado em todo o mundo antes do fim?",
+                pwdOptions: ["O Evangelho do Reino", "Regras de esportes", "Notícias de TV"], pwdCorrect: 0,
+                tips: [
+                    "Jesus avisou que veríamos guerras, fomes, terremotos e falta de amor no mundo.",
+                    "Cuidado com falsos profetas que fazem milagres mas não obedecem à Bíblia!",
+                    "O maior sinal final é o Evangelho verdadeiro sendo ensinado em todo o planeta!"
+                ],
+                craft1: "Sinais Cumpridos", craft2: "Evangelho no Mundo", craftResult: "Jesus Está Perto!",
+                commitment: "Quero ficar atento à Bíblia e me preparar para a chegada de Jesus!",
+                questions: [
+                    { q: "Por que precisamos conferir tudo na Bíblia nos últimos dias?", opts: ["Para não sermos enganados por falsos ensinos", "Porque os livros vão sumir", "Só por curiosidade"], c: 0 },
+                    { q: "Por que Jesus ainda está esperando um pouquinho antes de voltar (2 Pedro 3:9)?", opts: ["Porque Ele é paciente e quer que mais pessoas se salvem", "Porque Ele esqueceu a data", "Porque o céu não está pronto"], c: 0 },
+                    { q: "Qual deve ser a nossa atitude vendo os sinais se cumprirem?", opts: ["Levantar a cabeça com alegria e buscar a Deus em 1º lugar", "Ficar escondido com medo", "Ignorar tudo"], c: 0 }
+                ]
+            },
+            {
+                id: 7, world: 3, title: "A Volta de Cristo",
+                lootIcon: "🎺", lootName: "Trombeta de Ouro",
+                bossName: "Golem da Surpresa", bossEmoji: "🗿",
+                hook: "Será que Jesus vai voltar escondido como um espião invisível, ou vai ser o evento mais brilhante, barulhento e visível da história?",
+                verse: "Apocalipse 1:7",
+                pwdPrompt: "Em Apocalipse 1:7, quantos olhos verão Jesus voltando nas nuvens?",
+                pwdOptions: ["Todo olho O verá", "Só quem tiver luneta", "Ninguém verá"], pwdCorrect: 0,
+                tips: [
+                    "A volta de Jesus será pessoal, visível nos céus e com som de grande trombeta!",
+                    "Os mortos que amavam a Jesus vão ressuscitar cheios de vida e subirão com os salvos vivos.",
+                    "Ninguém sabe o dia nem a hora exata, por isso ficamos prontos todos os dias!"
+                ],
+                craft1: "Nuvens do Céu", craft2: "Milhares de Anjos", craftResult: "Volta Gloriosa!",
+                commitment: "Quero estar pronto para encontrar Jesus com alegria quando Ele vier nas nuvens!",
+                questions: [
+                    { q: "Como será a Segunda Vinda de Jesus segundo a Bíblia?", opts: ["Visível para todo o mundo, com glória e milhares de anjos", "Secreta e silenciosa", "Ele vai aparecer só no deserto"], c: 0 },
+                    { q: "O que acontecerá com os amigos de Jesus que já morreram quando Ele voltar?", opts: ["Ouvirão a voz de Jesus e ressuscitarão para a vida eterna!", "Continuarão dormindo", "Ficarão na Terra sozinhos"], c: 0 },
+                    { q: "Para onde Jesus vai levar os salvos logo após buscá-los?", opts: ["Para as moradas que Ele preparou no Céu (João 14:1-3)", "Para morar no fundo do mar", "Para outro deserto"], c: 0 }
+                ]
+            },
+            {
+                id: 8, world: 3, title: "O Milênio (1000 Anos)",
+                lootIcon: "👑", lootName: "Coroa do Céu",
+                bossName: "Wither Acorrentado", bossEmoji: "🏴‍☠️",
+                hook: "Depois que Jesus levar os salvos para o Céu, vão começar 1.000 anos especiais (o Milênio). O que vai acontecer no Céu e aqui na Terra?",
+                verse: "Apocalipse 20:6",
+                pwdPrompt: "Em Apocalipse 20:6, por quanto tempo os salvos reinarão com Cristo?",
+                pwdOptions: ["Mil anos", "Dez anos", "Cem anos"], pwdCorrect: 0,
+                tips: [
+                    "Durante os 1.000 anos, os salvos estarão no Céu com Jesus tirando todas as dúvidas.",
+                    "A Terra ficará vazia e escura, e Satanás ficará 'preso' aqui sem ter ninguém para enganar.",
+                    "No final dos 1.000 anos, a Cidade Santa desce e Deus destrói o mal com fogo para sempre!"
+                ],
+                craft1: "Salvos no Céu", craft2: "1.000 Anos com Cristo", craftResult: "Justiça Final",
+                commitment: "Decido fazer parte do time de Jesus para viver com Ele no Céu!",
+                questions: [
+                    { q: "Onde os salvos passarão o período dos 1.000 anos (Milênio)?", opts: ["No Céu, reinando com Jesus Cristo", "Na Terra destruída", "Perdidos no espaço"], c: 0 },
+                    { q: "Por que a Bíblia diz que Satanás ficará 'preso' na Terra durante os 1.000 anos?", opts: ["Porque a Terra estará vazia e ele não terá ninguém para tentar", "Porque terá uma corrente de ferro comum", "Porque ele vai dormir"], c: 0 },
+                    { q: "O que acontece com o mal e com Satanás no final dos 1.000 anos?", opts: ["Serão destruídos para sempre pelo fogo do céu, acabando o mal", "Eles fogem para outro planeta", "Começa tudo de novo"], c: 0 }
+                ]
+            },
+            {
+                id: 9, world: 3, title: "A Verdade sobre a Morte",
+                lootIcon: "🛏️", lootName: "Cama do Descanso",
+                bossName: "Fantasma da Mentira", bossEmoji: "🎃",
+                hook: "Muita gente tem medo de fantasmas ou acha que quem morre fica vagando por aí. Mas sabe com o que Jesus comparou a morte? Com um simples sono!",
+                verse: "Eclesiastes 9:5",
+                pwdPrompt: "Em Eclesiastes 9:5, o que a Bíblia diz que os mortos sabem?",
+                pwdOptions: ["Não sabem coisa nenhuma", "Sabem de tudo", "Mandam recados"], pwdCorrect: 0,
+                tips: [
+                    "Pó da terra + Fôlego de Deus = Ser Vivente. Quando morre, o fôlego volta a Deus e o corpo descansa.",
+                    "Jesus ensinou que a morte é como um sono sem sonhos até o dia da Ressurreição (João 11:11).",
+                    "Quem morreu não aparece para os vivos; precisamos confiar somente na Palavra de Deus!"
+                ],
+                craft1: "Pó da Terra", craft2: "Sopro de Vida", craftResult: "Alma Vivente",
+                commitment: "Não tenho medo de enganos, pois sei que Jesus tem a chave da vida eterna!",
+                questions: [
+                    { q: "Com o que Jesus comparou a morte quando Seu amigo Lázaro morreu?", opts: ["Com um sono tranquilo até Ele acordar a pessoa", "Com uma viagem imediata", "Com virar um fantasma"], c: 0 },
+                    { q: "Segundo Eclesiastes 9:5, uma pessoa que morreu consegue ver ou falar conosco hoje?", opts: ["Não, os mortos não sabem de nada e estão descansando", "Sim, através de sonhos", "Sim, toda noite"], c: 0 },
+                    { q: "Quando os amigos de Jesus que estão dormindo na sepultura vão acordar?", opts: ["Na manhã da Ressurreição, na volta de Jesus!", "Daqui a 1 milhão de anos", "Nunca mais"], c: 0 }
+                ]
+            },
+            {
+                id: 10, world: 3, title: "A Nova Terra",
+                lootIcon: "🦁", lootName: "Amizade com o Leão",
+                bossName: "Guardião da Tristeza", bossEmoji: "😢",
+                hook: "Imagine um servidor recriado do zero por Deus: ruas de ouro puro, água cristalina, zero hospitais, e você podendo brincar com um leão mansinho!",
+                verse: "Apocalipse 21:4",
+                pwdPrompt: "Em Apocalipse 21:4, o que Deus vai limpar dos nossos olhos para sempre?",
+                pwdOptions: ["Toda lágrima", "A poeira da rua", "O brilho do sol"], pwdCorrect: 0,
+                tips: [
+                    "A Nova Jerusalém descerá do Céu e será a capital da Nova Terra (2 Pedro 3:13).",
+                    "Nunca mais existirá morte, dor, doença, choro ou tristeza!",
+                    "Construiremos casas lindas, comeremos da Árvore da Vida e o lobo e o cordeiro brincarão juntos!"
+                ],
+                craft1: "Nova Jerusalém", craft2: "Árvore da Vida", craftResult: "Paraíso Eterno",
+                commitment: "Quero morar na Nova Terra com minha família e com meu melhor amigo Jesus!",
+                questions: [
+                    { q: "O que NÃO vai existir de jeito nenhum na Nova Terra (Apocalipse 21:4)?", opts: ["Morte, choro, grito de dor ou doenças", "Animais e árvores", "Música e alegria"], c: 0 },
+                    { q: "Como os animais como o leão e o cordeiro vão viver na Nova Terra (Isaías 65:25)?", opts: ["Em paz total, pastando juntos e mansos", "Brigando na floresta", "Presos em jaulas"], c: 0 },
+                    { q: "De um Sábado a outro, o que todos os salvos farão juntos na Nova Terra (Isaías 66:23)?", opts: ["Irão adorar face a face diante do Senhor Deus!", "Ficarão trancados em casa", "Trabalharão sem parar"], c: 0 }
+                ]
+            },
+            {
+                id: 11, world: 2, title: "Salvação pela Graça",
+                lootIcon: "🎁", lootName: "Presente Real",
+                bossName: "Bruxa do Orgulho", bossEmoji: "🧙‍♀️",
+                hook: "Existe diferença entre o modo como Noé e Davi foram salvos no Antigo Testamento e como nós somos salvos hoje? Descubra os 6 passos do herói!",
+                verse: "Efésios 2:8",
+                pwdPrompt: "Em Efésios 2:8, pela graça somos salvos mediante o quê?",
+                pwdOptions: ["Mediante a Fé", "Mediante o dinheiro", "Mediante a força"], pwdCorrect: 0,
+                tips: [
+                    "Tanto no Antigo quanto no Novo Testamento, a salvação sempre foi pela Graça de Cristo!",
+                    "Graça significa um favor imenso que a gente não merecia, pago pelo sangue de Jesus na cruz.",
+                    "Quem aceita esse presente dá 6 passos: Crê, se arrepende, confessa, obedece por amor, é batizado e persevera!"
+                ],
+                craft1: "Graça de Deus", craft2: "Fé que Obedece", craftResult: "Filho de Deus Salvo",
+                commitment: "Aceito a salvação gratuita de Jesus e quero perseverar com Ele até o fim!",
+                questions: [
+                    { q: "Quantos métodos de salvação existem em toda a Bíblia?", opts: ["Apenas um: pela graça de Deus através da fé em Jesus", "Dois: um antigo e outro novo", "Cada pessoa inventa o seu"], c: 0 },
+                    { q: "O que significa a palavra 'perseverar' na caminhada cristã?", opts: ["Continuar firme com Jesus todos os dias, lendo a Bíblia e orando", "Desistir no primeiro obstáculo", "Estudar só uma vez por ano"], c: 0 },
+                    { q: "Por que nós guardamos os mandamentos de Deus depois de conhecer Jesus?", opts: ["Por amor e gratidão porque Ele já nos salvou!", "Para tentar comprar uma vaga no céu", "Só por obrigação chata"], c: 0 }
+                ]
+            },
+            {
+                id: 12, world: 5, title: "O Santuário de Deus",
+                lootIcon: "🕯️", lootName: "Candelabro de Ouro",
+                bossName: "Guardião do Véu", bossEmoji: "🔮",
+                hook: "Sabia que Deus pediu para Moisés construir uma tenda sagrada que funcionava como uma 'maquete 3D' do plano da salvação e do Trono do Céu?",
+                verse: "Hebreus 8:1-2",
+                pwdPrompt: "Em Hebreus 8:2, onde fica o verdadeiro Santuário em que Jesus atua hoje?",
+                pwdOptions: ["No Céu (feito pelo Senhor)", "No Egito", "Embaixo da terra"], pwdCorrect: 0,
+                tips: [
+                    "O Santuário tinha 3 partes: Pátio, Lugar Santo e Lugar Santíssimo (onde ficava a Arca da Aliança).",
+                    "O cordeiro sacrificado apontava para Jesus na cruz; quando Jesus morreu, o véu do templo se rasgou!",
+                    "Hoje existe o Santuário original no Céu, onde Jesus trabalha como nosso Sumo Sacerdote e Intercessor!"
+                ],
+                craft1: "Arca da Aliança", craft2: "Jesus Sumo Sacerdote", craftResult: "Santuário Celestial",
+                commitment: "Reconheço que Jesus é o meu único Mediador no Santuário do Céu!",
+                questions: [
+                    { q: "O que estava guardado dentro da Arca da Aliança, no Lugar Santíssimo?", opts: ["As tábuas dos Dez Mandamentos escritos por Deus", "Joias dos reis", "Armas de ferro"], c: 0 },
+                    { q: "Quem os cordeirinhos do santuário antigo representavam?", opts: ["Jesus Cristo, o Cordeiro de Deus que tira o pecado", "Apenas fazendas de ovelhas", "Os soldados de Israel"], c: 0 },
+                    { q: "Onde Jesus está atuando por nós exatamente agora?", opts: ["No verdadeiro Santuário que fica no Céu!", "No templo antigo de pedra", "Ele está apenas descansando"], c: 0 }
+                ]
+            },
+            {
+                id: 13, world: 5, title: "O Juízo Divino",
+                lootIcon: "⚖️", lootName: "Balança da Justiça",
+                bossName: "Inquisidor Sombrio", bossEmoji: "👁️",
+                hook: "Se você tiver um julgamento importante, mas o seu Advogado de defesa for o próprio Filho do Juiz e seu melhor amigo, você precisa ter medo?",
+                verse: "1 João 2:1",
+                pwdPrompt: "Em 1 João 2:1, quem é o nosso Advogado junto ao Pai?",
+                pwdOptions: ["Jesus Cristo, o Justo", "São Pedro", "Moisés"], pwdCorrect: 0,
+                tips: [
+                    "A profecia das 2.300 tardes e manhãs (Daniel 8:14) apontou para 1844, início da purificação do Santuário celestial.",
+                    "Todas as nossas ações são registradas nos livros do Céu, e a norma do juízo é a Lei de Deus.",
+                    "Para quem está unido a Jesus, não há condenação! Ele mesmo é o nosso Advogado infalível!"
+                ],
+                craft1: "Lei dos 10 Mandamentos", craft2: "Jesus Nosso Advogado", craftResult: "Aprovado no Juízo!",
+                commitment: "Constituo Jesus Cristo como meu Salvador e meu Advogado pessoal!",
+                questions: [
+                    { q: "Quem é o nosso Advogado que nunca perde uma causa no tribunal do Céu?", opts: ["Jesus Cristo", "Qualquer anjo", "Nós mesmos"], c: 0 },
+                    { q: "Qual é a régua (a norma) que Deus usa no julgamento segundo Tiago 2:12?", opts: ["A Lei da Liberdade (Os Dez Mandamentos)", "A opinião das pessoas famosas", "A sorte"], c: 0 },
+                    { q: "De acordo com Romanos 8:1, existe condenação para quem está em Cristo Jesus?", opts: ["Nenhuma condenação há!", "Sim, muitas dúvidas", "Depende da sorte"], c: 0 }
+                ]
+            },
+            {
+                id: 14, world: 4, title: "As Leis na Bíblia",
+                lootIcon: "📜", lootName: "Tábuas de Pedra",
+                bossName: "Golem da Confusão", bossEmoji: "🪨",
+                hook: "Na Bíblia existem regras que acabaram na cruz e regras que duram para sempre! Você sabe diferenciar a Lei de Moisés da Lei escrita pelo dedo de Deus?",
+                verse: "Mateus 5:17",
+                pwdPrompt: "Em Mateus 5:17, Jesus veio destruir a Lei ou cumpri-la?",
+                pwdOptions: ["Não vim revogar, vim cumprir", "Vim cancelar tudo", "Vim esquecer a lei"], pwdCorrect: 0,
+                tips: [
+                    "As Leis Cerimoniais (sacrifícios de animais e festas antigas) apontavam para a cruz e terminaram na morte de Cristo.",
+                    "A Lei Moral (Os 10 Mandamentos) foi escrita pelo próprio dedo de Deus em duas tábuas de pedra e dura para sempre!",
+                    "A fé não anula os 10 Mandamentos; antes, confirma a Lei (Romanos 3:31)!"
+                ],
+                craft1: "Dedo de Deus", craft2: "Duas Tábuas de Pedra", craftResult: "Lei Moral Eterna",
+                commitment: "Entendo que os Dez Mandamentos são eternos e quero segui-los por amor!",
+                questions: [
+                    { q: "Qual lei foi cravada e cancelada na cruz porque já tinha se cumprido em Jesus?", opts: ["A Lei Cerimonial (dos sacrifícios de cordeiros)", "Os Dez Mandamentos", "A lei de amar o próximo"], c: 0 },
+                    { q: "Quem escreveu pessoalmente os Dez Mandamentos em duas tábuas de pedra (Êxodo 31:18)?", opts: ["O próprio Deus, com o Seu dedo!", "O rei Salomão com tinta", "Os escribas"], c: 0 },
+                    { q: "A obediência aos mandamentos serve para comprar a salvação ou é o resultado dela?", opts: ["É o resultado de quem já foi salvo por Jesus e O ama!", "Serve para pagar nossos pecados", "Não tem importância"], c: 0 }
+                ]
+            },
+            {
+                id: 15, world: 4, title: "A Lei Moral (10 Mandamentos)",
+                lootIcon: "💎", lootName: "Bloco de Safira",
+                bossName: "Saqueador de Regras", bossEmoji: "🪓",
+                hook: "Os 10 Mandamentos são como as cercas de proteção de uma ponte bem alta: elas não estão lá para atrapalhar, mas para ninguém cair no abismo!",
+                verse: "João 14:15",
+                pwdPrompt: "Em João 14:15, o que Jesus disse: 'Se me amais, guardareis os meus... '?",
+                pwdOptions: ["Mandamentos", "Segredos", "Tesouros"], pwdCorrect: 0,
+                tips: [
+                    "Os 4 primeiros mandamentos mostram nosso amor a Deus; os 6 últimos mostram nosso amor ao próximo!",
+                    "A profecia de Daniel 7:25 avisou que homens tentariam mudar a Lei de Deus na história.",
+                    "Para o cristão fiel, importa obedecer a Deus antes de obedecer a tradições humanas (Atos 5:29)!"
+                ],
+                craft1: "Amar a Deus (1 ao 4)", craft2: "Amar o Próximo (5 ao 10)", craftResult: "Lei Perfeita do Amor",
+                commitment: "Amo a Jesus e por isso quero guardar todos os Dez Mandamentos de Deus!",
+                questions: [
+                    { q: "Em quais duas grandes partes Jesus resumiu os Dez Mandamentos (Mateus 22:37-40)?", opts: ["Amar a Deus sobre tudo e amar o próximo como a si mesmo", "Trabalhar e dormir", "Ler e escrever"], c: 0 },
+                    { q: "Algum ser humano recebeu autorização de Deus para apagar ou mudar um mandamento?", opts: ["Não! Deus não muda e Sua Lei é santa, justa e boa", "Sim, os reis podiam mudar", "Sim, se todo mundo concordar"], c: 0 },
+                    { q: "Quando as tradições dos homens batem de frente com a Bíblia, quem devemos obedecer (Atos 5:29)?", opts: ["Importa obedecer a Deus do que aos homens!", "Seguir a maioria das pessoas", "Tanto faz"], c: 0 }
+                ]
+            },
+            {
+                id: 16, world: 4, title: "O Mandamento Esquecido",
+                lootIcon: "⏳", lootName: "Relógio Sagrado",
+                bossName: "Esquecedor do Tempo", bossEmoji: "🕰️",
+                hook: "Curioso! Existe um único mandamento que começa com a palavra 'LEMBRA-TE', e foi justamente o que a maioria das pessoas esqueceu! Qual é ele?",
+                verse: "Êxodo 20:8-11",
+                pwdPrompt: "Segundo Êxodo 20:8-10, qual é o sétimo dia abençoado pelo Senhor?",
+                pwdOptions: ["O Sábado", "A Sexta-feira", "A Segunda-feira"], pwdCorrect: 0,
+                tips: [
+                    "Deus criou, abençoou e santificou o Sábado lá na Criação do Éden, antes mesmo de existir pecado!",
+                    "Jesus tinha o costume de guardar o Sábado (Lucas 4:16), assim como Seus apóstolos.",
+                    "Até na Nova Terra continuaremos adorando a Deus de um Sábado a outro (Isaías 66:22-23)!"
+                ],
+                craft1: "Abençoado na Criação", craft2: "Exemplo de Jesus", craftResult: "Sábado: Dia Feliz!",
+                commitment: "Desejo lembrar do Sábado como um dia alegre de encontro especial com Deus!",
+                questions: [
+                    { q: "Quando o Sábado foi criado e abençoado por Deus?", opts: ["Na semana da Criação no Éden, para toda a humanidade", "Muitos anos depois, só para os judeus", "No tempo dos romanos"], c: 0 },
+                    { q: "Qual dia da semana o próprio Jesus guardava quando esteve aqui na Terra (Lucas 4:16)?", opts: ["O Sábado, conforme o Seu costume", "Nenhum dia específico", "A quarta-feira"], c: 0 },
+                    { q: "Por que guardamos o Sábado hoje?", opts: ["Como sinal de amor ao Criador que nos salvou!", "Para ficar triste sem fazer nada", "Por medo"], c: 0 }
+                ]
+            },
+            {
+                id: 17, world: 4, title: "Do Sábado para o Domingo",
+                lootIcon: "🔍", lootName: "Lupa da História",
+                bossName: "Imperador Falso", bossEmoji: "🏛️",
+                hook: "Se a Bíblia inteira ensina o Sábado (7º dia), quem foi que mudou o costume para o Domingo (1º dia)? Vamos investigar a história como detetives!",
+                verse: "Marcos 7:7-9",
+                pwdPrompt: "Em Marcos 7:8, o que alguns deixam de lado para guardar tradições de homens?",
+                pwdOptions: ["O mandamento de Deus", "As moedas de prata", "Os livros de história"], pwdCorrect: 0,
+                tips: [
+                    "O Novo Testamento menciona o 'primeiro dia da semana' apenas 8 vezes, e nenhuma delas muda o dia de guarda!",
+                    "A mudança histórica foi feita séculos depois pelo imperador Constantino no ano 321 d.C.",
+                    "Jesus nos chama a colocar a Palavra da Bíblia acima de qualquer mudança humana!"
+                ],
+                craft1: "História Investigada", craft2: "Fidelidade à Bíblia", craftResult: "Verdade Restaurada",
+                commitment: "Escolho seguir o exemplo bíblico de Jesus e guardar o verdadeiro dia do Senhor!",
+                questions: [
+                    { q: "Existe algum versículo na Bíblia onde Deus ou Jesus mudam o Sábado para o Domingo?", opts: ["Nenhum! A Bíblia nunca autorizou essa mudança", "Sim, no final do Apocalipse", "Sim, Paulo mudou"], c: 0 },
+                    { q: "Qual é o verdadeiro símbolo bíblico da morte e ressurreição de Jesus (Romanos 6:3-4)?", opts: ["O Batismo nas águas, e não o domingo", "As festas romanas", "O calendário"], c: 0 },
+                    { q: "Quem fez o primeiro decreto obrigando o descanso no domingo no ano 321 d.C.?", opts: ["O imperador romano Constantino", "O apóstolo João", "O profeta Moisés"], c: 0 }
+                ]
+            },
+            {
+                id: 18, world: 4, title: "Princípios de Saúde",
+                lootIcon: "🍎", lootName: "Super Maçã de Energia",
+                bossName: "Aranha Tóxica", bossEmoji: "🕷️",
+                hook: "Seu corpo é a sua máquina superpotente! Se você colocar combustível sujo num carro de corrida, ele enguiça. Como Deus ensina a cuidar da saúde?",
+                verse: "1 Coríntios 6:19-20",
+                pwdPrompt: "Em 1 Coríntios 6:19, nosso corpo é o santuário (templo) de quem?",
+                pwdOptions: ["Do Espírito Santo", "Dos esportes", "Da nossa própria vontade"], pwdCorrect: 0,
+                tips: [
+                    "Nosso corpo e nossa mente são o Templo do Espírito Santo, por isso cuidamos muito bem deles!",
+                    "O cardápio original de Deus inclui frutas, verduras, grãos, água pura e alimentos limpos (Levítico 11).",
+                    "Rejeitamos bebidas alcoólicas, cigarros e tudo o que destrói a saúde e a inteligência!"
+                ],
+                craft1: "Alimentos Saudáveis", craft2: "Água, Sol e Descanso", craftResult: "Templo Forte e Sábio",
+                commitment: "Reconheço que meu corpo é templo do Espírito Santo e quero cuidar bem da minha saúde!",
+                questions: [
+                    { q: "Por que Deus se importa com o que a gente come e bebe (1 Coríntios 6:19)?", opts: ["Porque nosso corpo é o Templo do Espírito Santo e Ele quer nos ver com saúde!", "Para deixar a vida sem graça", "Deus não se importa com a saúde"], c: 0 },
+                    { q: "Em Levítico 11, quais peixes Deus orientou que eram próprios e limpos para comer?", opts: ["Os que têm escamas e barbatanas", "Tubarões e animais sem escamas", "Qualquer coisa do mar"], c: 0 },
+                    { q: "O que a Bíblia ensina sobre bebidas alcoólicas e coisas que viciam (Provérbios 20:1)?", opts: ["Que enganam e fazem mal; devemos ficar longe delas!", "Que pode usar um pouquinho", "Que dão força"], c: 0 }
+                ]
+            },
+            {
+                id: 19, world: 5, title: "O Dom de Profecia",
+                lootIcon: "🔭", lootName: "Luneta do Profeta",
+                bossName: "Ilusionista Falso", bossEmoji: "🎭",
+                hook: "Antes do pecado, Deus conversava face a face com o ser humano. Depois, Ele passou a usar 'porta-vozes' especiais chamados Profetas! Como saber se um profeta é verdadeiro?",
+                verse: "Amós 3:7",
+                pwdPrompt: "Em Amós 3:7, a quem Deus revela Seus segredos antes de agir?",
+                pwdOptions: ["Aos Seus servos, os profetas", "Aos reis ricos", "Aos astrólogos"], pwdCorrect: 0,
+                tips: [
+                    "Um profeta verdadeiro sempre fala 100% de acordo com a Bíblia e a Lei de Deus (Isaías 8:20).",
+                    "Suas profecias se cumprem, ele exalta a Jesus Cristo e sua vida produz bons frutos!",
+                    "Apocalipse 12:17 mostra que a igreja do tempo do fim teria o dom de profecia (manifestado no ministério de Ellen White, uma 'luz menor' que aponta para a 'luz maior', a Bíblia)."
+                ],
+                craft1: "De Acordo com a Bíblia", craft2: "Exalta a Jesus", craftResult: "Profeta Verdadeiro",
+                commitment: "Quero ouvir as orientações que Deus envia por meio de Seus profetas e da Bíblia!",
+                questions: [
+                    { q: "Qual é o teste número 1 para saber se um profeta vem mesmo de Deus (Isaías 8:20)?", opts: ["Seus ensinos precisam concordar com a Bíblia e os Mandamentos", "Basta ele falar bonito", "Basta fazer mágica"], c: 0 },
+                    { q: "O dom de profecia substitui a Bíblia Sagrada?", opts: ["Não! É como uma lupa que ajuda a enxergar e amar ainda mais a Bíblia", "Sim, não precisa mais ler a Bíblia", "São livros iguais"], c: 0 },
+                    { q: "O que 2 Crônicas 20:20 promete quando cremos em Deus e em Seus profetas?", opts: ["Estaremos seguros e prosperaremos!", "Ficaremos confusos", "Teremos medo"], c: 0 }
+                ]
+            },
+            {
+                id: 20, world: 5, title: "O Dízimo (Parceria Fiel)",
+                lootIcon: "🪙", lootName: "Moeda da Fidelidade",
+                bossName: "Duende Egoísta", bossEmoji: "👺",
+                hook: "Se o seu pai te der 10 maçãs e pedir apenas 1 de volta para ajudar outras pessoas a conhecerem a Deus, seria difícil devolver? Esse é o princípio do Dízimo!",
+                verse: "Malaquias 3:10",
+                pwdPrompt: "Em Malaquias 3:10, o que Deus promete abrir quando somos fiéis nos dízimos?",
+                pwdOptions: ["As janelas do Céu", "Os portões de ferro", "Os mares"], pwdCorrect: 0,
+                tips: [
+                    "Deus é o Criador e dono de tudo; Ele nos dá saúde e inteligência para conquistar as coisas.",
+                    "O Dízimo é separar fielmente 10% (a décima parte) do que ganhamos como gratidão e respeito a Deus.",
+                    "Na igreja, o dízimo é usado exclusivamente para sustentar o ministério e pregar o evangelho pelo mundo!"
+                ],
+                craft1: "Devolver 10% Fiel", craft2: "Gratidão ao Criador", craftResult: "Evangelho Avançando!",
+                commitment: "Reconheço que tudo vem de Deus e quero ser fiel devolvendo o dízimo de tudo o que eu ganhar!",
+                questions: [
+                    { q: "Por que Deus tem direito sobre tudo o que existe no mundo?", opts: ["Porque Ele é o nosso Criador, Mantenedor e Redentor", "Porque Ele precisa de dinheiro", "Ele não é dono de nada"], c: 0 },
+                    { q: "Qual é a porcentagem exata que a Bíblia chama de Dízimo (Levítico 27:30)?", opts: ["10% (de cada 10 partes, 1 pertence a Deus)", "50% (metade)", "1%"], c: 0 },
+                    { q: "Para que serve o dízimo entregue na casa do Tesouro (igreja)?", opts: ["Para manter os pastores e missionários pregando a Palavra de Deus", "Para fazer festas comuns", "Para guardar num banco"], c: 0 }
+                ]
+            },
+            {
+                id: 21, world: 5, title: "Ofertar com Alegria",
+                lootIcon: "💝", lootName: "Esmeralda da Gratidão",
+                bossName: "Gárgula Avarento", bossEmoji: "🦇",
+                hook: "Enquanto o dízimo é 10% certinho, na Oferta é você quem escolhe o tamanho do seu presente de gratidão para ajudar a missão! Como Deus gosta que a gente oferte?",
+                verse: "2 Coríntios 9:7",
+                pwdPrompt: "Em 2 Coríntios 9:7, Deus ama a quem dá com que sentimento?",
+                pwdOptions: ["Com alegria!", "Com tristeza", "Por obrigação"], pwdCorrect: 0,
+                tips: [
+                    "A oferta é voluntária e planejada no coração, proporcional às bênçãos que recebemos.",
+                    "As ofertas ajudam a construir igrejas, manter nossa comunidade e enviar ajuda a lugares pobres e missões!",
+                    "Antes de dar qualquer oferta material, o que Deus mais quer é o nosso próprio coração (2 Coríntios 8:5)!"
+                ],
+                craft1: "Coração Agradecido", craft2: "Oferta com Alegria", craftResult: "Missão Abençoada!",
+                commitment: "Quero ser generoso e demonstrar minha gratidão a Deus ajudando a Sua obra com alegria!",
+                questions: [
+                    { q: "Quem decide o valor ou a porcentagem da Oferta que vamos entregar a Deus?", opts: ["Cada pessoa decide no seu coração, conforme as bênçãos que recebeu", "É proibido ofertar", "O vizinho decide"], c: 0 },
+                    { q: "Qual deve ser a nossa maior motivação ao entregar uma oferta?", opts: ["Amor e gratidão a Deus e à Sua causa!", "Querer aparecer para os outros", "Tentar comprar favores"], c: 0 },
+                    { q: "O que nós devemos entregar a Deus em primeiríssimo lugar (2 Coríntios 8:5)?", opts: ["Nossa própria vida e coração ao Senhor!", "Apenas moedas", "Brinquedos velhos"], c: 0 }
+                ]
+            },
+            {
+                id: 22, world: 5, title: "A Igreja Verdadeira",
+                lootIcon: "🏰", lootName: "Fortaleza das 8 Colunas",
+                bossName: "Chefe da Confusão", bossEmoji: "🌀",
+                hook: "Existem milhares de grupos diferentes no mundo dizendo que seguem a Deus. Como usar a Bíblia como um radar para identificar a Igreja Verdadeira?",
+                verse: "Apocalipse 14:12",
+                pwdPrompt: "Em Apocalipse 14:12, os santos têm a fé em Jesus e guardam o quê?",
+                pwdOptions: ["Os mandamentos de Deus", "Os costumes antigos", "As leis dos reis"], pwdCorrect: 0,
+                tips: [
+                    "Uma casa forte precisa de colunas firmes! A igreja de Deus é sustentada por 8 colunas bíblicas.",
+                    "Ela aceita toda a Bíblia, ensina a salvação pela fé em Cristo, aguarda a volta de Jesus e guarda os 10 Mandamentos (incluindo o Sábado).",
+                    "Ela também tem o dom de profecia, ensina a saúde bíblica e prega o evangelho no mundo inteiro (Apocalipse 14:6)!"
+                ],
+                craft1: "Guarda os Mandamentos", craft2: "Tem a Fé de Jesus", craftResult: "Igreja Remanescente",
+                commitment: "Estou feliz por conhecer a igreja que segue as colunas da Bíblia e quero fazer parte desse time!",
+                questions: [
+                    { q: "Quem é a Rocha e a Pedra Principal sobre a qual a igreja de Deus está construída (Efésios 2:20)?", opts: ["Jesus Cristo!", "Os imperadores", "A sabedoria humana"], c: 0 },
+                    { q: "Quais são as duas grandes marcas do povo de Deus em Apocalipse 14:12?", opts: ["Guardam os mandamentos de Deus e têm a fé em Jesus", "São muito ricos e famosos", "Moram todos na mesma cidade"], c: 0 },
+                    { q: "A igreja verdadeira prega em apenas um país ou é um movimento para o mundo todo (Apocalipse 14:6)?", opts: ["É um movimento mundial para toda nação, tribo, língua e povo!", "Fica escondida numa ilha", "Só fala uma língua"], c: 0 }
+                ]
+            },
+            {
+                id: 23, world: 5, title: "Por Que Ser Batizado?",
+                lootIcon: "🌊", lootName: "Balde de Água Cristalina",
+                bossName: "Leviatã da Dúvida", bossEmoji: "🐊",
+                hook: "Jesus não tinha nenhum pecado, mas foi até o rio Jordão para ser batizado por João Batista! Você sabe o que a palavra 'Batismo' realmente significa?",
+                verse: "Marcos 1:9-10",
+                pwdPrompt: "Em Marcos 1:10, quando Jesus foi batizado, Ele saiu de onde?",
+                pwdOptions: ["De dentro da água", "De cima do monte", "Do barco"], pwdCorrect: 0,
+                tips: [
+                    "Batismo significa 'mergulhar' ou 'imergir' completamente na água, exatamente como Jesus fez!",
+                    "Mergulhar na água simboliza sepultar a vida velha de erros; sair da água simboliza nascer para uma vida nova com Cristo (Romanos 6:4)!",
+                    "É a nossa festa pública dizendo para todo o universo: 'Eu pertenço ao time de Jesus!'"
+                ],
+                craft1: "Crer e Aprender", craft2: "Mergulhar nas Águas", craftResult: "Nova Criatura em Cristo!",
+                commitment: "Eu creio no batismo como Jesus ensinou e quero entregar minha vida a Deus!",
+                questions: [
+                    { q: "Como Jesus foi batizado por João Batista no rio Jordão?", opts: ["Por imersão (mergulhando nas águas do rio)", "Jogando gotinhas de longe", "Sem água"], c: 0 },
+                    { q: "Por que Jesus pediu para ser batizado se Ele nunca pecou (Mateus 3:15)?", opts: ["Para nos deixar o exemplo perfeito e cumprir toda a justiça", "Porque João obrigou", "Porque estava calor"], c: 0 },
+                    { q: "O que precisamos fazer antes de sermos batizados segundo Mateus 28:19-20?", opts: ["Estudar, entender as verdades de Jesus e aceitar de coração!", "Nada, basta pular na piscina", "Pagar uma taxa"], c: 0 }
+                ]
+            },
+            {
+                id: 24, world: 5, title: "Princípios de Vida Cristã",
+                lootIcon: "🍞", lootName: "Pão e Suco da Aliança",
+                bossName: "Sombra do Mundanismo", bossEmoji: "🕶️",
+                hook: "Um agente especial do Céu vive de um jeito diferente: ele espalha luz, bondade e respeito por onde passa! Quais são os hábitos diários de um campeão de Deus?",
+                verse: "Filipenses 4:8",
+                pwdPrompt: "Em Filipenses 4:8, devemos ocupar nossa mente com coisas...",
+                pwdOptions: ["Verdadeiras, puras e justas", "Violentas e ruins", "Que dão briga"], pwdCorrect: 0,
+                tips: [
+                    "Para ficar forte na fé, fazemos 4 coisas: Lemos a Bíblia, oramos, vamos à igreja e falamos do amor de Jesus!",
+                    "Vivemos o Sábado com alegria do pôr do sol de sexta ao pôr do sol de sábado, fazendo o bem.",
+                    "Na igreja, Jesus deixou a Santa Ceia (pão e suco de uva puro) e o Lava-pés (símbolo de humildade e amizade)!"
+                ],
+                craft1: "Bíblia + Oração Diária", craft2: "Amizade com Deus", craftResult: "Embaixador do Céu",
+                commitment: "Quero ler a Bíblia, orar todos os dias e escolher diversões que agradem a Jesus!",
+                questions: [
+                    { q: "Quando começa e quando termina o dia sagrado de Sábado na Bíblia?", opts: ["Do pôr do sol de sexta-feira até o pôr do sol de sábado", "Da meia-noite ao meio-dia", "Só domingo de manhã"], c: 0 },
+                    { q: "O que a cerimônia do Lava-pés que Jesus ensinou mostra para nós?", opts: ["Humildade e que somos todos irmãos iguais diante de Deus", "Apenas lavar o sapato", "Quem manda mais"], c: 0 },
+                    { q: "Como devemos tratar nossos irmãos, colegas e autoridades segundo a Bíblia?", opts: ["Sempre falando a verdade, com respeito, pureza e fazendo o bem!", "Com gritos e mentiras", "Só ajudando quem paga"], c: 0 }
+                ]
+            },
+            {
+                id: 25, world: 5, title: "Educação Cristã",
+                lootIcon: "🎓", lootName: "Capacete da Sabedoria",
+                bossName: "Mago da Tolice", bossEmoji: "🃏",
+                hook: "Sabia que a primeira escola do mundo funcionava ao ar livre no Jardim do Éden, e o Professor era o próprio Deus? Como aprender a verdadeira sabedoria hoje?",
+                verse: "Provérbios 22:6",
+                pwdPrompt: "Em Provérbios 22:6, ensina a criança no caminho em que deve...",
+                pwdOptions: ["Andar", "Correr sozinho", "Parar"], pwdCorrect: 0,
+                tips: [
+                    "A verdadeira educação desenvolve o físico, a mente (inteligência) e o coração espiritual juntos!",
+                    "A sabedoria que ignora a Deus é vazia; precisamos filtrar tudo o que vemos pela verdade da Bíblia.",
+                    "Pais e filhos estudando a Palavra de Deus juntos constroem um caráter que dura para a eternidade!"
+                ],
+                craft1: "Estudo Inteligente", craft2: "Temor do Senhor", craftResult: "Sabedoria Verdadeira",
+                commitment: "Quero usar minha inteligência para aprender sempre mais sobre Deus e Sua criação!",
+                questions: [
+                    { q: "Qual é o maior objetivo da verdadeira educação cristã?", opts: ["Restaurar em nós a amizade e o caráter amoroso do nosso Criador", "Apenas tirar nota 10 para ficar orgulhoso", "Decorar números sem sentido"], c: 0 },
+                    { q: "Como Jesus ensinava Seus discípulos enquanto caminhava com eles?", opts: ["Pelo exemplo prático: orando, curando, amando e explicando a Palavra", "Trancado numa sala escura", "Apenas mandando provas difíceis"], c: 0 },
+                    { q: "O que acontece quando aprendemos o caminho de Deus desde crianças (Provérbios 22:6)?", opts: ["Mesmo quando crescermos, nunca nos desviaremos dele!", "A gente esquece na semana seguinte", "Não faz diferença"], c: 0 }
+                ]
+            },
+            {
+                id: 26, world: 5, title: "A Vida no Espírito",
+                lootIcon: "🕊️", lootName: "Pena de Luz Celestial",
+                bossName: "Vórtice do Desânimo", bossEmoji: "🌪️",
+                hook: "Antes de subir para o Céu, Jesus prometeu que não deixaria a gente órfão ou sozinho na missão: Ele enviou o Consolador! Quem é Ele e quais poderes Ele nos dá?",
+                verse: "Gálatas 5:22-23",
+                pwdPrompt: "Em Gálatas 5:22, qual é a primeira virtude do Fruto do Espírito?",
+                pwdOptions: ["O Amor", "A Raiva", "A Pressa"], pwdCorrect: 0,
+                tips: [
+                    "O Espírito Santo é a terceira Pessoa da Divindade; Ele nos guia em toda a verdade e nos consola!",
+                    "Quando pedimos a Deus em oração, somos batizados todos os dias com a presença do Espírito Santo.",
+                    "Quem tem o Espírito Santo mostra o 'Fruto do Espírito': amor, alegria, paz, paciência, bondade e domínio próprio!"
+                ],
+                craft1: "Pedir em Oração", craft2: "Obedecer à Palavra", craftResult: "Fruto do Espírito!",
+                commitment: "Peço todos os dias que o Espírito Santo more no meu coração e me dê domínio próprio e alegria!",
+                questions: [
+                    { q: "Quem é o Espírito Santo segundo a Bíblia (Mateus 28:19)?", opts: ["Deus conosco (o Consolador divino enviado por Jesus)", "Apenas um vento comum", "Um pensamento"], c: 0 },
+                    { q: "Como sabemos que uma pessoa está cheia do Espírito Santo (Gálatas 5:22)?", opts: ["Pelo Fruto do Espírito na vida dela (amor, paz, bondade, obediência a Deus)", "Porque ela grita mais alto", "Porque ela nunca fala com ninguém"], c: 0 },
+                    { q: "O que precisamos fazer hoje para receber o Espírito Santo (Lucas 11:13)?", opts: ["Pedir ao Pai Celestial em oração todos os dias com fé!", "Comprar na loja", "Achar numa caverna"], c: 0 }
+                ]
+            },
+            {
+                id: 27, world: 5, title: "Um Ministério para Todos",
+                lootIcon: "👑", lootName: "Estrela do Discípulo",
+                bossName: "Dragão do Egoísmo", bossEmoji: "🐲",
+                hook: "Chegamos ao Estudo 27 do Bíblia+! Cada seguidor de Jesus recebe talentos especiais para ser o Sal da terra e a Luz do mundo!",
+                verse: "Mateus 28:19-20",
+                pwdPrompt: "Em Mateus 28:19, Jesus mandou ir e fazer o quê em todas as nações?",
+                pwdOptions: ["Fazer discípulos!", "Construir muralhas", "Ficar escondido"], pwdCorrect: 0,
+                tips: [
+                    "a) Quem somos: Sacerdócio real, sal da terra e luz do mundo (Mateus 5:13-14).",
+                    "b) O que necessitamos: Dos dons espirituais dados pelo Espírito Santo, sendo o Amor o dom supremo!",
+                    "c) O que fazer: Usar nossos talentos com fidelidade para levar amigos aos pés de Jesus!"
+                ],
+                craft1: "Meus Talentos e Dons", craft2: "Amor ao Próximo", craftResult: "Discípulo Missionário!",
+                commitment: "Quero usar meus dons na igreja e compartilhar a Palavra de Deus com meus amigos!",
+                questions: [
+                    { q: "De acordo com 1 Pedro 2:9 e Mateus 5:13-14, quem somos nós para o mundo?", opts: ["Sal da terra, luz do mundo e sacerdotes reais de Deus!", "Apenas espectadores", "Passageiros sem missão"], c: 0 },
+                    { q: "Qual é o dom mais importante de todos na Bíblia (1 Coríntios 13:13)?", opts: ["O Dom do Amor!", "Falar difícil", "Ser o mais rápido"], c: 0 },
+                    { q: "Qual foi a grande ordem de missão que Jesus deixou em Mateus 28:19-20?", opts: ["Ide, fazei discípulos e ensinai a guardar tudo o que Eu vos ordenei!", "Guardem o segredo só para vocês", "Fiquem parados"], c: 0 }
+                ]
+            },
+            {
+                id: 28, world: 6, title: "Anexo 1: As Sete Igrejas",
+                lootIcon: "✉️", lootName: "As 7 Cartas do Apocalipse",
+                bossName: "Guardião da Mornidão", bossEmoji: "🕯️",
+                hook: "ANEXO ESPECIAL 1 (Página 84 do Bíblia+)! Jesus enviou 7 cartas para 7 igrejas na Ásia, que representam toda a história da igreja até os nossos dias!",
+                verse: "Apocalipse 3:20",
+                pwdPrompt: "Em Apocalipse 3:20, onde Jesus diz que está parado batendo?",
+                pwdOptions: ["À porta do coração!", "No telhado", "Na janela da torre"], pwdCorrect: 0,
+                tips: [
+                    "1) Éfeso (pura, época dos apóstolos), Esmirna (perseguida mas fiel) e Pérgamo (onde tradições entraram).",
+                    "2) Tiatira (longa Idade Média), Sardes (Reforma Protestante) e Filadélfia (grande despertar do amor fraterno).",
+                    "3) Laodiceia (a última igreja, no tempo do Juízo, chamada por Jesus a deixar a mornidão e abrir a porta do coração)!"
+                ],
+                craft1: "7 Períodos da História", craft2: "Abrir a Porta a Jesus", craftResult: "Vencedor de Apocalipse!",
+                commitment: "Abro a porta do meu coração para Jesus entrar e cear comigo todos os dias!",
+                questions: [
+                    { q: "O que as Sete Igrejas do Apocalipse capítulos 2 e 3 representam profeticamente?", opts: ["Os 7 períodos da história da igreja cristã desde os apóstolos até a volta de Jesus", "Apenas 7 prédios antigos sem história", "7 reis do Egito"], c: 0 },
+                    { q: "Qual das 7 igrejas representa o último período da história, em que vivemos hoje?", opts: ["Laodiceia (que significa 'povo julgado')", "Éfeso (a primeira)", "Esmirna"], c: 0 },
+                    { q: "Qual é o convite amoroso de Jesus para nós na carta a Laodiceia (Apocalipse 3:20)?", opts: ["'Eis que estou à porta e bato; se alguém ouvir a Minha voz e abrir, entrarei!'", "Fuja para longe", "Compre ouro de verdade"], c: 0 }
+                ]
+            },
+            {
+                id: 29, world: 6, title: "Anexo 2: Duas Mulheres",
+                lootIcon: "☀️", lootName: "Coroa de 12 Estrelas",
+                bossName: "Fera de Escarlata", bossEmoji: "🦂",
+                hook: "ANEXO ESPECIAL 2 (Página 85 do Bíblia+)! Na profecia bíblica, uma Mulher simboliza uma Igreja! No Apocalipse aparecem duas mulheres totalmente opostas!",
+                verse: "Apocalipse 12:1",
+                pwdPrompt: "Em Apocalipse 12:1, a mulher pura está vestida de quê?",
+                pwdOptions: ["Vestida do Sol!", "Vestida de ferro", "Vestida de folhas"], pwdCorrect: 0,
+                tips: [
+                    "a) Símbolo profético: Na Bíblia (Jeremias 6:2; Efésios 5:25), uma mulher pura representa a Igreja fiel de Deus.",
+                    "b) A Mulher de Apocalipse 12: Vestida do Sol (a luz de Cristo), com a lua sob os pés e coroa de 12 estrelas (12 tribos/12 apóstolos).",
+                    "c) A Mulher de Apocalipse 17: Vestida de púrpura com cálice de doutrinas falsas representa o sistema religioso infiel que abandonou a Bíblia."
+                ],
+                craft1: "Mulher Vestida do Sol", craft2: "Guarda os Mandamentos", craftResult: "Igreja Fiel de Cristo",
+                commitment: "Quero permanecer sempre na igreja pura que segue a luz do Sol da Justiça, Jesus!",
+                questions: [
+                    { q: "Em profecia bíblica, o que uma Mulher representa simbolicamente?", opts: ["Uma Igreja (o povo de Deus quando é pura, ou uma igreja infiel quando é impura)", "Uma rainha literal", "Uma estrela"], c: 0 },
+                    { q: "Quem é a Mulher vestida do Sol com uma coroa de 12 estrelas em Apocalipse 12:1?", opts: ["A Igreja verdadeira de Deus, iluminada pela glória de Cristo", "A deusa da lua", "Uma cidade romana"], c: 0 },
+                    { q: "Qual é o chamado de Deus em Apocalipse 18:4 para os sinceros que ainda estão na Babilônia espiritual?", opts: ["'Retirai-vos dela, povo Meu', vindo para a verdade da Bíblia!", "Ficar lá sem mudar nada", "Esquecer as profecias"], c: 0 }
+                ]
+            },
+            {
+                id: 30, world: 6, title: "Anexo 3: O que é o Inferno?",
+                lootIcon: "🔥", lootName: "Pergaminho Hebraico",
+                bossName: "Monstro do Medo", bossEmoji: "👹",
+                hook: "ANEXO ESPECIAL 3 (Página 86 do Bíblia+)! Será que Deus, que é amor, deixaria alguém queimando sem morrer por bilhões de anos? Vamos ver as palavras originais da Bíblia!",
+                verse: "Malaquias 4:1-3",
+                pwdPrompt: "Em Malaquias 4:3, no fogo final, os ímpios se tornarão o quê?",
+                pwdOptions: ["Cinza!", "Estátuas de pedra", "Fantasmas eternos"], pwdCorrect: 0,
+                tips: [
+                    "a) Sheol (hebraico) e Hades (grego): Significam simplesmente a 'sepultura' onde os mortos dormem até a ressurreição!",
+                    "b) Geena: Era o vale onde o lixo de Jerusalém era totalmente consumido pelo fogo, símbolo da destruição final.",
+                    "c) Fogo eterno (Judas 7): É eterno nos seus resultados! Queima totalmente o mal até virar cinza (Malaquias 4:1-3) e depois se apaga!"
+                ],
+                craft1: "Justiça de Deus", craft2: "Fim Total do Pecado", craftResult: "Universo Limpo e Puro!",
+                commitment: "Confio no caráter justo e amoroso de Deus que dará fim ao mal para sempre!",
+                questions: [
+                    { q: "O que significam as palavras originais 'Sheol' (hebraico) e 'Hades' (grego) traduzidas às vezes como inferno?", opts: ["A sepultura comum, o lugar silencioso onde os mortos descansam", "Uma fornalha subterrânea acesa hoje", "Outro planeta"], c: 0 },
+                    { q: "De acordo com Malaquias 4:1 e 3, o fogo final vai deixar alguma raiz ou ramo do mal vivo?", opts: ["Não! Queimará tudo completamente até virar cinza e acabar o sofrimento", "Ficará queimando sem nunca acabar", "Não haverá juízo"], c: 0 },
+                    { q: "Por que Judas 7 diz que Sodoma e Gomorra sofreram a pena do 'fogo eterno' se elas não estão queimando hoje?", opts: ["Porque 'fogo eterno' significa destruição permanente e irreversível!", "Porque o fogo é invisível", "Porque ainda há fumaça lá"], c: 0 }
+                ]
+            },
+            {
+                id: 31, world: 6, title: "Anexo 4: O Dom de Línguas",
+                lootIcon: "🗣️", lootName: "Tocha de Pentecostes",
+                bossName: "Espírito de Babel", bossEmoji: "🗯️",
+                hook: "ANEXO ESPECIAL 4 (Página 87 do Bíblia+)! No dia de Pentecostes, os discípulos receberam o dom de línguas! Mas que línguas eram aquelas? Idiomas reais para pregar!",
+                verse: "Atos 2:6-8",
+                pwdPrompt: "Em Atos 2:6 e 8, a multidão ouvia os apóstolos falando em quê?",
+                pwdOptions: ["Em sua própria língua materna!", "Em sons sem sentido", "Por mímica"], pwdCorrect: 0,
+                tips: [
+                    "a) Em Pentecostes (Atos 2): Havia judeus de mais de 15 regiões diferentes, e o Espírito Santo capacitou os discípulos a pregar nos idiomas reais deles!",
+                    "b) Em Corinto (1 Coríntios 14): Paulo corrigiu a confusão e ensinou que na igreja tudo deve ser compreensível, com ordem e decência.",
+                    "c) O propósito do Dom: Quebrar a barreira dos idiomas para que o Evangelho alcance toda nação, tribo, língua e povo!"
+                ],
+                craft1: "Poder do Espírito", craft2: "Idiomas Reais p/ Pregar", craftResult: "Evangelho Compreendido!",
+                commitment: "Quero falar de Jesus com clareza, ordem e poder do Espírito Santo!",
+                questions: [
+                    { q: "O que foi o verdadeiro dom de línguas derramado em Atos capítulo 2 (Pentecostes)?", opts: ["Idiomas estrangeiros reais para que pessoas de outros países entendessem o Evangelho!", "Sons confusos que ninguém entendia", "Apenas músicas"], c: 0 },
+                    { q: "Por que Deus deu o dom de línguas para a igreja primitiva?", opts: ["Para pregar o Evangelho rapidamente a povos de diferentes idiomas", "Para mostrar quem era melhor", "Para causar barulho no culto"], c: 0 },
+                    { q: "Qual é a regra de ouro que o apóstolo Paulo deixou em 1 Coríntios 14:40 para o culto?", opts: ["'Tudo, porém, seja feito com decência e com ordem!'", "Cada um grite ao mesmo tempo", "Não importa entender"], c: 0 }
+                ]
+            },
+            {
+                id: 32, world: 6, title: "Anexo 5: Profecias de Daniel",
+                lootIcon: "🗿", lootName: "Rocha que Esmiúça a Estátua",
+                bossName: "Boss Supremo: A Besta de 10 Chifres", bossEmoji: "🦁",
+                hook: "ANEXO FINAL 5 (Página 88 do Bíblia+)! A Grande Estátua de Daniel 2 e os 4 Animais de Daniel 7 desenharam a história do mundo inteiro até o Reino Eterno de Jesus!",
+                verse: "Daniel 2:44",
+                pwdPrompt: "Em Daniel 2:44, o Reino que o Deus do céu levantará jamais será...",
+                pwdOptions: ["Jamais será destruído!", "Esquecido pelos reis", "Vendido por ouro"], pwdCorrect: 0,
+                tips: [
+                    "a) Os 4 Impérios Mundiais (Daniel 2 e 7): 1º Cabeça de Ouro/Leão = Babilônia; 2º Peito de Prata/Urso = Medo-Pérsia; 3º Ventre de Bronze/Leopardo = Grécia; 4º Pernas de Ferro/4º Animal = Roma!",
+                    "b) Os Pés de Ferro com Barro e os 10 Chifres: A divisão de Roma nas nações da Europa moderna, que nunca mais se uniriam totalmente.",
+                    "c) A Rocha Cortada sem Mãos: Representa a Volta de Jesus Cristo destruindo os reinos terrenos e estabelecendo o Reino Eterno de Deus!"
+                ],
+                craft1: "Estátua da História", craft2: "Rocha Cortada sem Mãos", craftResult: "Reino Eterno de Cristo!",
+                commitment: "PARABÉNS! Completei toda a jornada Bíblia+ e escolho ser cidadão do Reino Eterno de Jesus!",
+                questions: [
+                    { q: "Quais foram os 4 grandes impérios mundiais representados pelo Ouro, Prata, Bronze e Ferro na estátua de Daniel 2?", opts: ["Babilônia, Medo-Pérsia, Grécia e Roma!", "Egito, China, Brasil e Índia", "Apenas reis desconhecidos"], c: 0 },
+                    { q: "Em qual parte da estátua de Daniel 2 nós estamos vivendo hoje na história?", opts: ["Na ponta dos pés e dedos de ferro misturado com barro (as nações divididas de hoje)!", "Na cabeça de ouro (Babilônia)", "Nos braços de prata"], c: 0 },
+                    { q: "Quem é a grande 'Pedra cortada sem auxílio de mãos' que vai bater nos pés da estátua e encher toda a Terra (Daniel 2:34, 44)?", opts: ["Jesus Cristo em Sua Segunda Vinda, criando o Seu Reino Eterno!", "Um meteoro comum", "Mais um rei humano"], c: 0 }
+                ]
+            }
+        ];
+
+        // =========================================================================
+        // 2. ITENS DA LOJA DO ALDEÃO E CONQUISTAS (EDIÇÃO BÍBLIA+ 32 BLOCOS)
+        // =========================================================================
+        const shopItems = [
+            { id: 'potion_time', name: 'Poção de Foco (+30s)', desc: 'Aumenta o cronômetro da Bíblia de 60s para 90s permanentemente!', cost: 150, icon: '🧪', type: 'upgrade' },
+            { id: 'golden_apple', name: 'Maçã Encantada (+1 Vida)', desc: 'Você começa todas as batalhas contra os Bosses com 4 Corações!', cost: 250, icon: '🍎', type: 'upgrade' },
+            { id: 'armor_leather', name: 'Elmo de Prismarinho', desc: 'Equipa o seu Avatar com proteção do Templo Oceânico.', cost: 100, icon: '🔱', type: 'armor', rankName: 'Guardião de Prismarinho' },
+            { id: 'armor_iron', name: 'Peitoral de Ametista', desc: 'Equipa o seu Avatar com armadura de Cristal Roxo!', cost: 350, icon: '🔮', type: 'armor', rankName: 'Cavaleiro de Ametista' },
+            { id: 'armor_gold', name: 'Coroa dos Profetas', desc: 'Mostra que você domina os infográficos do Bíblia+!', cost: 600, icon: '👑', type: 'armor', rankName: 'Sábio de Daniel' },
+            { id: 'armor_diamond', name: 'Armadura de Diamante Puro', desc: 'Nível Supremo! O equipamento brilhante do Mestre Bíblia+!', cost: 1000, icon: '💎', type: 'armor', rankName: 'Mestre de Diamante' },
+            { id: 'armor_netherite', name: 'Espada Cintilante da Verdade', desc: 'Relíquia Lendária para quem venceu grandes desafios!', cost: 1600, icon: '⚔️', type: 'armor', rankName: 'Lenda do Bíblia+' }
+        ];
+
+        const achievementsCatalog = [
+            { id: 'first_block', title: 'Primeiro Infográfico!', desc: 'Completou o 1º Estudo da série Bíblia+.', icon: '⛏️' },
+            { id: 'fast_miner', title: 'Minerador Relâmpago!', desc: 'Encontrou o versículo na Bíblia antes do tempo acabar.', icon: '⚡' },
+            { id: 'master_crafter', title: 'Mestre da Forja!', desc: 'Construiu a verdade na Forja de Cristal.', icon: '⚒️' },
+            { id: 'flawless_boss', title: 'Caçador Implacável!', desc: 'Derrotou um Boss sem perder nenhum coração!', icon: '🗡️' },
+            { id: 'world_1_done', title: 'Explorador da Origem', desc: 'Completou 5 blocos do portal Bíblia+!', icon: '🌍' },
+            { id: 'half_portal', title: 'Metade do Portal!', desc: 'Ativou 16 blocos de Diamante do Portal.', icon: '💎' },
+            { id: 'all_32', title: 'Lenda Suprema do Bíblia+!', desc: 'Completou todos os 27 Estudos e os 5 Anexos (32 Blocos)!', icon: '👑' }
+        ];
+
+        // =========================================================================
+        // 3. ESTADO DO JOGO E SALVAMENTO QUÁDRUPLO BLINDADO (SOBREVIVE A RELOAD E GOOGLE SITES)
+        // =========================================================================
+        const STORAGE_KEY = 'iasd_central_bibliamais_save_v2';
+
+        let gameState = {
+            playerName: '',
+            xp: 0,
+            completedIds: [],        // IDs das missões concluídas [1..32]
+            step2CompletedIds: [],   // IDs onde o Cofre do Versículo já foi aberto
+            step3CompletedIds: [],   // IDs onde a Forja Real já foi feita
+            faithCommitments: [],    // IDs com compromisso marcado
+            purchasedItems: [],      // IDs comprados na loja
+            equippedArmor: '',       // Ícone da armadura atual
+            rankName: 'Explorador Bíblia+',
+            unlockedAchievements: [],// IDs de conquistas
+            lastScreen: 'screen-map',// Última tela aberta para restaurar no F5
+            lastMissionId: null      // Último bloco aberto para restaurar no F5
+        };
+
+        // Substitui dinamicamente qualquer menção de nome nos textos das lições pelo nome digitado
+        function personalizeText(text) {
+            if (!text) return '';
+            const name = (gameState.playerName && gameState.playerName.trim()) ? gameState.playerName.trim() : 'Explorador(a)';
+            return text.replace(/Rafael/g, name);
+        }
+
+        function setCookieBackup(name, value, days) {
+            try {
+                const d = new Date();
+                d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
+                const expires = "expires=" + d.toUTCString();
+                document.cookie = name + "=" + encodeURIComponent(value) + ";" + expires + ";path=/;SameSite=Lax";
+            } catch (e) {}
+        }
+
+        function getCookieBackup(name) {
+            try {
+                const cname = name + "=";
+                const decodedCookie = decodeURIComponent(document.cookie);
+                const ca = decodedCookie.split(';');
+                for (let i = 0; i < ca.length; i++) {
+                    let c = ca[i].trim();
+                    if (c.indexOf(cname) === 0) {
+                        return c.substring(cname.length, c.length);
+                    }
+                }
+            } catch (e) {}
+            return "";
+        }
+
+        function loadSaveData() {
+            let raw = null;
+
+            // Canal 1: localStorage (Padrão do navegador)
+            try {
+                raw = localStorage.getItem(STORAGE_KEY);
+            } catch (e) {}
+
+            // Canal 2: sessionStorage (Memória da sessão da aba)
+            if (!raw) {
+                try {
+                    raw = sessionStorage.getItem(STORAGE_KEY);
+                } catch (e) {}
+            }
+
+            // Canal 3: window.name (Persiste ao recarregar F5 mesmo dentro de iframes bloqueados como Google Sites/Preview)
+            if (!raw) {
+                try {
+                    if (window.name && window.name.startsWith('BM_SAVE:')) {
+                        raw = decodeURIComponent(window.name.replace('BM_SAVE:', ''));
+                    }
+                } catch (e) {}
+            }
+
+            // Canal 4: Cookies de longa duração
+            if (!raw) {
+                raw = getCookieBackup(STORAGE_KEY);
+            }
+
+            let hasValidSave = false;
+            if (raw) {
+                try {
+                    const parsed = JSON.parse(raw);
+                    gameState = {
+                        ...gameState,
+                        ...parsed,
+                        completedIds: Array.isArray(parsed.completedIds) ? parsed.completedIds : [],
+                        step2CompletedIds: Array.isArray(parsed.step2CompletedIds) ? parsed.step2CompletedIds : [],
+                        step3CompletedIds: Array.isArray(parsed.step3CompletedIds) ? parsed.step3CompletedIds : [],
+                        faithCommitments: Array.isArray(parsed.faithCommitments) ? parsed.faithCommitments : [],
+                        purchasedItems: Array.isArray(parsed.purchasedItems) ? parsed.purchasedItems : [],
+                        unlockedAchievements: Array.isArray(parsed.unlockedAchievements) ? parsed.unlockedAchievements : []
+                    };
+                    hasValidSave = true;
+                } catch (e) {
+                    console.warn('Iniciando novo save em memória.');
+                }
+            }
+
+            const nameInput = document.getElementById('player-name-input');
+            if (nameInput && gameState.playerName) {
+                nameInput.value = gameState.playerName;
+            }
+            updateHeaderUI();
+            return hasValidSave;
+        }
+
+        function saveGameData() {
+            const jsonStr = JSON.stringify(gameState);
+
+            // Salva simultaneamente nos 4 canais para nunca perder ao dar F5
+            try { localStorage.setItem(STORAGE_KEY, jsonStr); } catch (e) {}
+            try { sessionStorage.setItem(STORAGE_KEY, jsonStr); } catch (e) {}
+            try { window.name = 'BM_SAVE:' + encodeURIComponent(jsonStr); } catch (e) {}
+            setCookieBackup(STORAGE_KEY, jsonStr, 365);
+
+            const indicator = document.getElementById('save-status-indicator');
+            if (indicator) {
+                indicator.innerHTML = '<i class="fa-solid fa-circle-check text-green-400"></i> Progresso Salvo!';
+                setTimeout(() => {
+                    indicator.innerHTML = '<i class="fa-solid fa-floppy-disk text-amber-400"></i> Salvo Blindado Ativo';
+                }, 1200);
+            }
+
+            updateHeaderUI();
+        }
+
+        // Funções do Modal de Código de Save (Backup Manual p/ Google Sites)
+        function openBackupModal() {
+            playClick();
+            const code = btoa(encodeURIComponent(JSON.stringify(gameState)));
+            document.getElementById('backup-code-text').value = code;
+            document.getElementById('backup-msg').classList.add('hidden');
+            document.getElementById('modal-backup').classList.remove('hidden-screen');
+        }
+
+        function closeBackupModal() {
+            playClick();
+            document.getElementById('modal-backup').classList.add('hidden-screen');
+        }
+
+        function copyBackupCode() {
+            playPop();
+            const textEl = document.getElementById('backup-code-text');
+            textEl.select();
+            document.execCommand('copy');
+            const msg = document.getElementById('backup-msg');
+            msg.innerText = "✅ Código copiado! Guarde no bloco de notas ou WhatsApp.";
+            msg.classList.remove('hidden');
+        }
+
+        function loadBackupCode() {
+            const textEl = document.getElementById('backup-code-text');
+            const rawCode = textEl.value.trim();
+            processImportedCode(rawCode);
+        }
+
+        function processImportedCode(rawCode) {
+            if (!rawCode) return;
+            try {
+                const decoded = decodeURIComponent(atob(rawCode));
+                const parsed = JSON.parse(decoded);
+                if (parsed && typeof parsed.xp === 'number') {
+                    gameState = {
+                        ...gameState,
+                        ...parsed,
+                        completedIds: Array.isArray(parsed.completedIds) ? parsed.completedIds : [],
+                        step2CompletedIds: Array.isArray(parsed.step2CompletedIds) ? parsed.step2CompletedIds : [],
+                        step3CompletedIds: Array.isArray(parsed.step3CompletedIds) ? parsed.step3CompletedIds : []
+                    };
+                    saveGameData();
+                    renderMap(currentWorldFilter);
+                    const msg = document.getElementById('backup-msg');
+                    msg.innerText = "🎉 Progresso restaurado com sucesso!";
+                    msg.classList.remove('hidden');
+                    playLevelUp();
+                    setTimeout(() => closeBackupModal(), 1000);
+                }
+            } catch (e) {
+                playPlayerDamage();
+                const msg = document.getElementById('backup-msg');
+                msg.innerText = "⚠️ Código inválido ou arquivo corrompido!";
+                msg.classList.remove('hidden');
+            }
+        }
+
+        function downloadSaveFile() {
+            playPop();
+            const code = btoa(encodeURIComponent(JSON.stringify(gameState)));
+            const blob = new Blob([code], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const safeName = (gameState.playerName || 'Explorador').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            a.download = `save_bibliamais_${safeName}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            const msg = document.getElementById('backup-msg');
+            msg.innerText = "✅ Arquivo baixado com sucesso!";
+            msg.classList.remove('hidden');
+        }
+
+        function uploadSaveFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result.trim();
+                document.getElementById('backup-code-text').value = content;
+                processImportedCode(content);
+            };
+            reader.readAsText(file);
+            event.target.value = ''; // Reseta o input de arquivo
+        }
+
+        function changePlayerNamePrompt() {
+            playClick();
+            showScreen('screen-home', true);
+            const nameInput = document.getElementById('player-name-input');
+            if (nameInput) {
+                nameInput.value = gameState.playerName || '';
+                nameInput.focus();
+            }
+        }
+
+        function openResetModal() {
+            playClick();
+            document.getElementById('modal-reset').classList.remove('hidden-screen');
+        }
+
+        function closeResetModal() {
+            playClick();
+            document.getElementById('modal-reset').classList.add('hidden-screen');
+        }
+
+        function confirmResetWorld() {
+            playExplosion();
+            gameState = {
+                playerName: '',
+                xp: 0,
+                completedIds: [],
+                step2CompletedIds: [],
+                step3CompletedIds: [],
+                faithCommitments: [],
+                purchasedItems: [],
+                equippedArmor: '',
+                rankName: 'Explorador Bíblia+',
+                unlockedAchievements: [],
+                lastScreen: 'screen-home',
+                lastMissionId: null
+            };
+            try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+            try { sessionStorage.removeItem(STORAGE_KEY); } catch (e) {}
+            try { window.name = ''; } catch (e) {}
+            setCookieBackup(STORAGE_KEY, '', -1);
+
+            const nameInput = document.getElementById('player-name-input');
+            if (nameInput) nameInput.value = '';
+            updateHeaderUI();
+            closeResetModal();
+            showScreen('screen-home', true);
+        }
+
+        // =========================================================================
+        // 4. MOTOR DE ÁUDIO SINTETIZADO (ESTILO MINECRAFT)
+        // =========================================================================
+        let synth, drum, noiseSynth;
+        let isAudioReady = false;
+
+        async function initAudio() {
+            if (!isAudioReady) {
+                try {
+                    await Tone.start();
+                    synth = new Tone.PolySynth(Tone.Synth, {
+                        oscillator: { type: "square" },
+                        envelope: { attack: 0.01, decay: 0.1, sustain: 0.1, release: 0.2 }
+                    }).toDestination();
+                    drum = new Tone.MembraneSynth().toDestination();
+                    noiseSynth = new Tone.NoiseSynth({
+                        noise: { type: 'brown' },
+                        envelope: { attack: 0.005, decay: 0.15, sustain: 0 }
+                    }).toDestination();
+                    synth.volume.value = -8;
+                    drum.volume.value = -4;
+                    noiseSynth.volume.value = -10;
+                    isAudioReady = true;
+                } catch (e) {
+                    console.log("Áudio aguardando interação.");
+                }
+            }
+        }
+
+        function playClick() {
+            if (!isAudioReady) return;
+            drum.triggerAttackRelease("G2", "32n");
+        }
+
+        function playPop() {
+            if (!isAudioReady) return;
+            synth.triggerAttackRelease("C5", "32n");
+        }
+
+        function playVillagerSound() {
+            if (!isAudioReady) return;
+            const now = Tone.now();
+            synth.triggerAttackRelease("F3", "8n", now);
+            synth.triggerAttackRelease("D#3", "4n", now + 0.12);
+        }
+
+        function playHitBoss() {
+            if (!isAudioReady) return;
+            noiseSynth.triggerAttackRelease("16n");
+            drum.triggerAttackRelease("C3", "16n");
+        }
+
+        function playPlayerDamage() {
+            if (!isAudioReady) return;
+            const now = Tone.now();
+            synth.triggerAttackRelease(["C2", "F#2"], "8n", now);
+        }
+
+        function playLevelUp() {
+            if (!isAudioReady) return;
+            const now = Tone.now();
+            synth.triggerAttackRelease("E5", "16n", now);
+            synth.triggerAttackRelease("G5", "16n", now + 0.08);
+            synth.triggerAttackRelease("B5", "16n", now + 0.16);
+            synth.triggerAttackRelease("E6", "8n", now + 0.24);
+        }
+
+        function playExplosion() {
+            if (!isAudioReady) return;
+            drum.triggerAttackRelease("C1", "2n");
+        }
+
+        // =========================================================================
+        // 5. NAVEGAÇÃO, MAPA, PORTAL E CONQUISTAS
+        // =========================================================================
+        let currentWorldFilter = 'all';
+        let currentMission = null;
+        let step2Done = false;
+        let step3Done = false;
+        let craft1Clicked = false;
+        let craft2Clicked = false;
+
+        // Timer Foco
+        let focusInterval = null;
+        let focusTimeLeft = 60;
+
+        // Estado do Boss (Quiz)
+        let currentQuestionIndex = 0;
+        let playerHearts = 3;
+        let maxHearts = 3;
+
+        function showScreen(screenId, skipSaveState = false) {
+            clearInterval(focusInterval);
+            document.getElementById('modal-focus').classList.add('hidden-screen');
+            document.querySelectorAll('.app-container > div:not(#achievement-toast):not(#modal-focus):not(#modal-reset):not(#modal-backup)').forEach(el => {
+                el.classList.add('hidden-screen');
+            });
+            document.getElementById(screenId).classList.remove('hidden-screen');
+            
+            if (!skipSaveState) {
+                if (['screen-map', 'screen-lesson', 'screen-shop', 'screen-achievements'].includes(screenId)) {
+                    gameState.lastScreen = screenId;
+                    saveGameData();
+                }
+            }
+            updateHeaderUI();
+        }
+
+        async function startGame() {
+            const nameInput = document.getElementById('player-name-input');
+            const errorMsg = document.getElementById('name-error-msg');
+            const typedName = nameInput ? nameInput.value.trim() : '';
+
+            if (!typedName) {
+                if (errorMsg) errorMsg.classList.remove('hidden');
+                if (nameInput) nameInput.focus();
+                return;
+            }
+
+            if (errorMsg) errorMsg.classList.add('hidden');
+            await initAudio();
+            playClick();
+            gameState.playerName = typedName;
+            gameState.lastScreen = 'screen-map';
+            saveGameData();
+            renderMap('all');
+            showScreen('screen-map');
+        }
+
+        function updateHeaderUI() {
+            const activeName = (gameState.playerName && gameState.playerName.trim()) ? gameState.playerName.trim() : 'Explorador(a)';
+            document.querySelectorAll('.player-name-span').forEach(el => {
+                el.innerText = activeName;
+            });
+
+            document.getElementById('xp-display').innerText = gameState.xp;
+            document.getElementById('shop-xp').innerText = `${gameState.xp} XP`;
+            document.getElementById('armor-badge').innerText = gameState.equippedArmor || '';
+            document.getElementById('player-rank').innerText = gameState.rankName || 'Explorador Bíblia+';
+
+            // Atualiza o Grande Portal de 32 Blocos
+            const doneCount = gameState.completedIds.length;
+            document.getElementById('portal-count').innerText = `${doneCount} / 32 Blocos`;
+            const portalGrid = document.getElementById('portal-grid');
+            if (portalGrid) {
+                portalGrid.innerHTML = '';
+                for (let i = 1; i <= 32; i++) {
+                    const div = document.createElement('div');
+                    const isDone = gameState.completedIds.includes(i);
+                    div.className = `portal-block ${isDone ? 'active' : ''}`;
+                    div.title = `Bloco ${i}`;
+                    portalGrid.appendChild(div);
+                }
+            }
+        }
+
+        function filterWorld(w) {
+            playClick();
+            currentWorldFilter = w;
+            document.querySelectorAll('[id^="tab-"]').forEach(btn => {
+                btn.classList.remove('bg-amber-600');
+            });
+            document.getElementById(`tab-${w}`).classList.add('bg-amber-600');
+            renderMap(w);
+        }
+
+        function renderMap(worldFilter) {
+            const container = document.getElementById('grid-blocos');
+            container.innerHTML = '';
+            
+            const filtered = worldFilter === 'all' 
+                ? missions 
+                : missions.filter(m => m.world === worldFilter);
+
+            filtered.forEach(m => {
+                const isDone = gameState.completedIds.includes(m.id);
+                const hasPartial = !isDone && (
+                    gameState.step2CompletedIds.includes(m.id) ||
+                    gameState.step3CompletedIds.includes(m.id)
+                );
+                const isAnnex = m.world === 6;
+                const btn = document.createElement('button');
+                btn.className = `mc-slot p-2 flex flex-col items-center justify-between text-center h-28 cursor-pointer ${isDone ? 'completed' : ''}`;
+                btn.onclick = () => loadMission(m.id);
+                
+                btn.innerHTML = `
+                    <div class="w-full flex justify-between items-center text-xs px-1">
+                        <span class="${isAnnex ? 'bg-amber-600 text-black' : 'bg-black/75 text-amber-200'} px-1.5 font-bold">${isAnnex ? 'ANEXO' : '#' + m.id}</span>
+                        <span>${isDone ? '✅' : (hasPartial ? '⛏️' : '🔒')}</span>
+                    </div>
+                    <div class="text-3xl my-0.5">${isDone ? m.lootIcon : (hasPartial ? '⏳' : (isAnnex ? '📜' : '📕'))}</div>
+                    <div class="text-white text-base mc-text-shadow font-bold leading-none line-clamp-2 w-full">
+                        ${m.title}
+                    </div>
+                `;
+                container.appendChild(btn);
+            });
+            updateHeaderUI();
+        }
+
+        function unlockAchievement(achId) {
+            if (gameState.unlockedAchievements.includes(achId)) return;
+            const ach = achievementsCatalog.find(a => a.id === achId);
+            if (!ach) return;
+
+            gameState.unlockedAchievements.push(achId);
+            gameState.xp += 50; // Bônus de conquista
+            saveGameData();
+
+            const toast = document.getElementById('achievement-toast');
+            document.getElementById('achievement-title').innerText = `${ach.title} (+50 XP)`;
+            toast.style.top = '16px';
+            playLevelUp();
+
+            setTimeout(() => {
+                toast.style.top = '-140px';
+            }, 3800);
+        }
+
+        // =========================================================================
+        // 6. CARREGAMENTO DO ESTUDO (OS 4 PASSOS INTERATIVOS COM SALVAMENTO POR ETAPA)
+        // =========================================================================
+        function getMaxTimerSeconds() {
+            return gameState.purchasedItems.includes('potion_time') ? 90 : 60;
+        }
+
+        function loadMission(id) {
+            playVillagerSound();
+            currentMission = missions.find(m => m.id === id);
+            if (!currentMission) return;
+
+            gameState.lastMissionId = id;
+
+            // Restaura caso o Cofre (Passo 2) ou a Forja (Passo 3) já tenham sido concluídos antes
+            step2Done = gameState.step2CompletedIds.includes(id) || gameState.completedIds.includes(id);
+            step3Done = gameState.step3CompletedIds.includes(id) || gameState.completedIds.includes(id);
+            craft1Clicked = step3Done;
+            craft2Clicked = step3Done;
+
+            const worldNames = {
+                1: "Mundo 1: A Origem de Tudo (Bíblia+)",
+                2: "Mundo 2: O Grande Resgate (Bíblia+)",
+                3: "Mundo 3: O Futuro e o Novo Lar (Bíblia+)",
+                4: "Mundo 4: O Manual do Criador (Bíblia+)",
+                5: "Mundo 5: O Quartel General (Bíblia+)",
+                6: "⭐ Anexos Especiais Proféticos (Bíblia+)"
+            };
+
+            document.getElementById('lesson-world-badge').innerText = worldNames[currentMission.world];
+            document.getElementById('lesson-title').innerText = `Bloco ${currentMission.id}: ${currentMission.title}`;
+            document.getElementById('lesson-hook').innerText = personalizeText(currentMission.hook);
+            document.getElementById('lesson-verse').innerText = currentMission.verse;
+            
+            const maxSecs = getMaxTimerSeconds();
+            document.getElementById('timer-btn-secs').innerText = maxSecs;
+
+            // Passo 2: Cofre de Senha do Versículo
+            if (step2Done) {
+                document.getElementById('step2-status').innerText = "Desbloqueado! ✅";
+                document.getElementById('step2-status').className = "text-base bg-green-800 text-white px-2 py-0.5";
+            } else {
+                document.getElementById('step2-status').innerText = "Pendente";
+                document.getElementById('step2-status').className = "text-base bg-red-700 text-white px-2 py-0.5";
+            }
+            document.getElementById('verse-pwd-prompt').innerText = personalizeText(currentMission.pwdPrompt);
+            
+            const pwdContainer = document.getElementById('verse-pwd-options');
+            pwdContainer.innerHTML = '';
+            currentMission.pwdOptions.forEach((optText, idx) => {
+                const b = document.createElement('button');
+                const isCorrectOpt = idx === currentMission.pwdCorrect;
+                b.className = `mc-btn py-2 px-1 text-lg font-bold leading-tight ${(step2Done && isCorrectOpt) ? 'mc-btn-green' : ''}`;
+                b.innerText = personalizeText(optText);
+                b.onclick = () => checkVersePassword(idx, b);
+                pwdContainer.appendChild(b);
+            });
+
+            // Passo 3: 3 Dicas Fatiadas + Mesa de Trabalho
+            const tipsUl = document.getElementById('lesson-tips');
+            tipsUl.innerHTML = '';
+            currentMission.tips.forEach(t => {
+                const li = document.createElement('li');
+                li.innerText = personalizeText(t);
+                tipsUl.appendChild(li);
+            });
+
+            document.getElementById('craft-text-1').innerText = currentMission.craft1;
+            document.getElementById('craft-text-2').innerText = currentMission.craft2;
+
+            if (step3Done) {
+                document.getElementById('step3-status').innerText = "Craftado! ✅";
+                document.getElementById('step3-status').className = "text-base bg-green-800 text-white px-2 py-0.5";
+                document.getElementById('craft-slot-1').className = "mc-slot w-28 h-20 flex flex-col items-center justify-center p-1 text-center bg-[#6b1d27] completed";
+                document.getElementById('craft-slot-2').className = "mc-slot w-28 h-20 flex flex-col items-center justify-center p-1 text-center bg-[#6b1d27] completed";
+                document.getElementById('craft-result-icon').innerText = currentMission.lootIcon;
+                document.getElementById('craft-result-text').innerText = currentMission.craftResult;
+            } else {
+                document.getElementById('step3-status').innerText = "Pendente";
+                document.getElementById('step3-status').className = "text-base bg-red-700 text-white px-2 py-0.5";
+                document.getElementById('craft-slot-1').className = "mc-slot w-28 h-20 flex flex-col items-center justify-center p-1 text-center bg-[#6b1d27]";
+                document.getElementById('craft-slot-2').className = "mc-slot w-28 h-20 flex flex-col items-center justify-center p-1 text-center bg-[#6b1d27]";
+                document.getElementById('craft-result-icon').innerText = "❓";
+                document.getElementById('craft-result-text').innerText = "Clique nos 2";
+            }
+
+            showScreen('screen-lesson');
+        }
+
+        // Modo Foco (Caverna)
+        function openFocusMode() {
+            playClick();
+            const maxSecs = getMaxTimerSeconds();
+            focusTimeLeft = maxSecs;
+            document.getElementById('focus-verse').innerText = currentMission.verse;
+            document.getElementById('focus-timer').innerText = focusTimeLeft;
+            document.getElementById('modal-focus').classList.remove('hidden-screen');
+
+            clearInterval(focusInterval);
+            focusInterval = setInterval(() => {
+                focusTimeLeft--;
+                document.getElementById('focus-timer').innerText = focusTimeLeft;
+                if (focusTimeLeft > 0 && focusTimeLeft <= 10) {
+                    playPop();
+                }
+                if (focusTimeLeft <= 0) {
+                    clearInterval(focusInterval);
+                    playExplosion();
+                }
+            }, 1000);
+        }
+
+        function foundVerseEarly() {
+            clearInterval(focusInterval);
+            if (focusTimeLeft >= 15) {
+                unlockAchievement('fast_miner');
+            } else {
+                playLevelUp();
+            }
+            closeFocusMode();
+        }
+
+        function closeFocusMode() {
+            clearInterval(focusInterval);
+            document.getElementById('modal-focus').classList.add('hidden-screen');
+        }
+
+        function checkVersePassword(selectedIndex, btnEl) {
+            if (step2Done) return;
+            if (selectedIndex === currentMission.pwdCorrect) {
+                playLevelUp();
+                step2Done = true;
+                btnEl.classList.add('mc-btn-green');
+                document.getElementById('step2-status').innerText = "Desbloqueado! +25 XP";
+                document.getElementById('step2-status').className = "text-base bg-green-800 text-white px-2 py-0.5";
+                if (!gameState.step2CompletedIds.includes(currentMission.id)) {
+                    gameState.step2CompletedIds.push(currentMission.id);
+                    gameState.xp += 25;
+                }
+                saveGameData();
+            } else {
+                playPlayerDamage();
+                btnEl.style.backgroundColor = '#991b1b';
+            }
+        }
+
+        function clickCraftIngredient(slotNum) {
+            playPop();
+            if (slotNum === 1) {
+                craft1Clicked = true;
+                document.getElementById('craft-slot-1').classList.add('completed');
+            } else {
+                craft2Clicked = true;
+                document.getElementById('craft-slot-2').classList.add('completed');
+            }
+
+            if (craft1Clicked && craft2Clicked && !step3Done) {
+                step3Done = true;
+                playLevelUp();
+                document.getElementById('craft-result-icon').innerText = currentMission.lootIcon;
+                document.getElementById('craft-result-text').innerText = currentMission.craftResult;
+                document.getElementById('step3-status').innerText = "Craftado! +25 XP";
+                document.getElementById('step3-status').className = "text-base bg-green-800 text-white px-2 py-0.5";
+                if (!gameState.step3CompletedIds.includes(currentMission.id)) {
+                    gameState.step3CompletedIds.push(currentMission.id);
+                    gameState.xp += 25;
+                }
+                saveGameData();
+                unlockAchievement('master_crafter');
+            }
+        }
+
+        // =========================================================================
+        // 7. ARENA DE BATALHA CONTRA O BOSS (3 PERGUNTAS + CORAÇÕES + SCREEN SHAKE)
+        // =========================================================================
+        function startQuiz() {
+            playClick();
+            currentQuestionIndex = 0;
+            maxHearts = gameState.purchasedItems.includes('golden_apple') ? 4 : 3;
+            playerHearts = maxHearts;
+
+            document.getElementById('boss-name').innerText = currentMission.bossName;
+            document.getElementById('boss-emoji').innerText = currentMission.bossEmoji;
+            
+            updateBattleHUD();
+            renderCurrentQuestion();
+            showScreen('screen-quiz', true);
+        }
+
+        function updateBattleHUD() {
+            // Corações do Rafael
+            let heartsStr = '';
+            for (let i = 0; i < maxHearts; i++) {
+                heartsStr += i < playerHearts ? '❤️' : '🖤';
+            }
+            document.getElementById('player-hearts').innerText = heartsStr;
+
+            // Barra de Vida do Boss
+            const totalQ = currentMission.questions.length;
+            const remainingRatio = Math.max(0, ((totalQ - currentQuestionIndex) / totalQ) * 100);
+            document.getElementById('boss-hp-bar').style.width = `${remainingRatio}%`;
+            document.getElementById('boss-hp-text').innerText = `HP: ${Math.round(remainingRatio)}%`;
+            document.getElementById('quiz-progress-text').innerText = `Golpe ${Math.min(currentQuestionIndex + 1, totalQ)} de ${totalQ}`;
+        }
+
+        function renderCurrentQuestion() {
+            const qObj = currentMission.questions[currentQuestionIndex];
+            document.getElementById('quiz-question').innerText = personalizeText(qObj.q);
+
+            const optsContainer = document.getElementById('quiz-options');
+            optsContainer.innerHTML = '';
+
+            const mapped = qObj.opts.map((text, idx) => ({ text: personalizeText(text), isCorrect: idx === qObj.c }));
+            mapped.sort(() => Math.random() - 0.5);
+
+            mapped.forEach(item => {
+                const btn = document.createElement('button');
+                btn.className = "mc-btn w-full py-3.5 px-4 text-2xl text-left flex items-center gap-3";
+                btn.innerHTML = `<i class="fa-solid fa-caret-right text-yellow-400"></i> <span>${item.text}</span>`;
+                btn.onclick = () => handleBossAttack(item.isCorrect, btn);
+                optsContainer.appendChild(btn);
+            });
+        }
+
+        function handleBossAttack(isCorrect, btnElement) {
+            const appEl = document.getElementById('app');
+            const bossCard = document.getElementById('boss-container');
+
+            if (isCorrect) {
+                playHitBoss();
+                btnElement.classList.add('mc-btn-green');
+                
+                bossCard.classList.add('scale-95', 'bg-red-900');
+                setTimeout(() => bossCard.classList.remove('scale-95', 'bg-red-900'), 250);
+
+                currentQuestionIndex++;
+                updateBattleHUD();
+
+                if (currentQuestionIndex >= currentMission.questions.length) {
+                    setTimeout(() => finishMissionSuccess(), 500);
+                } else {
+                    setTimeout(() => renderCurrentQuestion(), 500);
+                }
+            } else {
+                playPlayerDamage();
+                playerHearts--;
+                btnElement.style.backgroundColor = '#7f1d1d';
+                btnElement.disabled = true;
+
+                appEl.classList.add('shake-anim', 'damage-flash');
+                setTimeout(() => appEl.classList.remove('shake-anim', 'damage-flash'), 450);
+
+                updateBattleHUD();
+
+                if (playerHearts <= 0) {
+                    setTimeout(() => {
+                        playExplosion();
+                        showScreen('screen-gameover', true);
+                    }, 500);
+                }
+            }
+        }
+
+        function finishMissionSuccess() {
+            playLevelUp();
+            const isFirstTime = !gameState.completedIds.includes(currentMission.id);
+            const earnedXp = isFirstTime ? 150 : 50;
+            gameState.xp += earnedXp;
+
+            if (isFirstTime) {
+                gameState.completedIds.push(currentMission.id);
+            }
+            if (!gameState.step2CompletedIds.includes(currentMission.id)) {
+                gameState.step2CompletedIds.push(currentMission.id);
+            }
+            if (!gameState.step3CompletedIds.includes(currentMission.id)) {
+                gameState.step3CompletedIds.push(currentMission.id);
+            }
+            if (!gameState.faithCommitments.includes(currentMission.id)) {
+                gameState.faithCommitments.push(currentMission.id);
+            }
+            saveGameData();
+
+            // Checa Conquistas
+            if (gameState.completedIds.length >= 1) unlockAchievement('first_block');
+            if (playerHearts === maxHearts) unlockAchievement('flawless_boss');
+            if (gameState.completedIds.length >= 5) unlockAchievement('world_1_done');
+            if (gameState.completedIds.length >= 16) unlockAchievement('half_portal');
+            if (gameState.completedIds.length >= 32) unlockAchievement('all_32');
+
+            // Popula tela de vitória
+            document.getElementById('reward-loot-icon').innerText = currentMission.lootIcon;
+            document.getElementById('reward-loot-name').innerText = currentMission.lootName;
+            document.getElementById('reward-xp-text').innerText = `+${earnedXp} XP GANHOS!`;
+            document.getElementById('lesson-commitment').innerText = personalizeText(currentMission.commitment);
+
+            showScreen('screen-success', true);
+            triggerConfetti();
+        }
+
+        // =========================================================================
+        // 8. VILA DO ALDEÃO (LOJA) E SALA DE TROFÉUS
+        // =========================================================================
+        function openShop() {
+            playVillagerSound();
+            renderShop();
+            showScreen('screen-shop');
+        }
+
+        function renderShop() {
+            updateHeaderUI();
+            const container = document.getElementById('shop-items-container');
+            container.innerHTML = '';
+
+            shopItems.forEach(item => {
+                const owned = gameState.purchasedItems.includes(item.id);
+                const canAfford = gameState.xp >= item.cost;
+
+                const card = document.createElement('div');
+                card.className = "mc-panel p-3 flex justify-between items-center gap-3 bg-[#f5b041]";
+                card.innerHTML = `
+                    <div class="text-4xl bg-[#3e2723] text-white p-2 border-2 border-black">${item.icon}</div>
+                    <div class="flex-1 leading-tight">
+                        <div class="text-2xl font-bold text-black">${item.name}</div>
+                        <div class="text-lg text-gray-900">${item.desc}</div>
+                    </div>
+                `;
+
+                const btn = document.createElement('button');
+                if (owned) {
+                    if (item.type === 'armor') {
+                        const isEquipped = gameState.equippedArmor === item.icon;
+                        btn.className = `mc-btn px-3 py-2 text-xl ${isEquipped ? 'mc-btn-green' : ''}`;
+                        btn.innerText = isEquipped ? 'Equipado' : 'Usar';
+                        btn.onclick = () => {
+                            playPop();
+                            gameState.equippedArmor = item.icon;
+                            gameState.rankName = item.rankName;
+                            saveGameData();
+                            renderShop();
+                        };
+                    } else {
+                        btn.className = "mc-btn mc-btn-green px-3 py-2 text-xl opacity-80";
+                        btn.innerText = "Ativo ✅";
+                        btn.disabled = true;
+                    }
+                } else {
+                    btn.className = `mc-btn px-3 py-2 text-xl ${canAfford ? 'mc-btn-gold' : 'opacity-50'}`;
+                    btn.innerText = `${item.cost} XP`;
+                    btn.onclick = () => buyShopItem(item);
+                }
+
+                card.appendChild(btn);
+                container.appendChild(card);
+            });
+        }
+
+        function buyShopItem(item) {
+            if (gameState.xp < item.cost) {
+                playPlayerDamage();
+                return;
+            }
+            playLevelUp();
+            gameState.xp -= item.cost;
+            gameState.purchasedItems.push(item.id);
+            if (item.type === 'armor') {
+                gameState.equippedArmor = item.icon;
+                gameState.rankName = item.rankName;
+            }
+            saveGameData();
+            renderShop();
+        }
+
+        function openAchievements() {
+            playClick();
+            document.getElementById('loot-count').innerText = gameState.completedIds.length;
+            const lootGrid = document.getElementById('loot-grid');
+            lootGrid.innerHTML = '';
+
+            missions.forEach(m => {
+                const hasLoot = gameState.completedIds.includes(m.id);
+                const slot = document.createElement('div');
+                slot.className = `mc-slot aspect-square flex items-center justify-center text-2xl ${hasLoot ? 'completed' : ''}`;
+                slot.innerText = hasLoot ? m.lootIcon : '❔';
+                slot.title = hasLoot ? `${m.id}. ${m.lootName}` : `Complete o Bloco ${m.id}`;
+                lootGrid.appendChild(slot);
+            });
+
+            const achList = document.getElementById('achievements-list');
+            achList.innerHTML = '';
+            achievementsCatalog.forEach(a => {
+                const unlocked = gameState.unlockedAchievements.includes(a.id);
+                const row = document.createElement('div');
+                row.className = `p-2.5 border-2 flex items-center gap-3 ${unlocked ? 'bg-yellow-100 border-yellow-700' : 'bg-gray-800 border-gray-600 opacity-60 text-white'}`;
+                row.innerHTML = `
+                    <div class="text-3xl">${unlocked ? a.icon : '🔒'}</div>
+                    <div class="leading-tight">
+                        <div class="text-xl font-bold ${unlocked ? 'text-black' : 'text-white'}">${a.title}</div>
+                        <div class="text-base ${unlocked ? 'text-gray-800' : 'text-gray-300'}">${a.desc}</div>
+                    </div>
+                `;
+                achList.appendChild(row);
+            });
+
+            showScreen('screen-achievements');
+        }
+
+        function triggerConfetti() {
+            const duration = 2000;
+            const end = Date.now() + duration;
+            const mcColors = ['#00e5ff', '#a855f7', '#38bdf8', '#facc15'];
+
+            (function frame() {
+                confetti({
+                    particleCount: 5,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: mcColors,
+                    shapes: ['square']
+                });
+                confetti({
+                    particleCount: 5,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: mcColors,
+                    shapes: ['square']
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
+        }
+
+        // Inicializa dados salvos ao abrir ou recarregar a página (F5)
+        window.onload = () => {
+            const hasSave = loadSaveData();
+            const nameInput = document.getElementById('player-name-input');
+            if (nameInput) {
+                nameInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') startGame();
+                });
+            }
+
+            // Se já tiver um explorador salvo, restaura automaticamente a tela exata em que estava antes do F5!
+            if (hasSave && gameState.playerName && gameState.playerName.trim() !== '') {
+                renderMap('all');
+                if (gameState.lastScreen === 'screen-lesson' && gameState.lastMissionId) {
+                    loadMission(gameState.lastMissionId);
+                } else if (gameState.lastScreen === 'screen-shop') {
+                    openShop();
+                } else if (gameState.lastScreen === 'screen-achievements') {
+                    openAchievements();
+                } else {
+                    showScreen('screen-map', true);
+                }
+            }
+
+            // Ativa o sintetizador de som no primeiro toque após um F5
+            document.body.addEventListener('click', async () => {
+                if (!isAudioReady) {
+                    await initAudio();
+                }
+            }, { once: true });
+        };
+    </script>
+</body>
+</html>
